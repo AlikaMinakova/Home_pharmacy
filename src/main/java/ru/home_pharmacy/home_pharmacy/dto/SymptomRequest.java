@@ -10,7 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class SymptomRequest {
-
+    private Long id;
     @NotBlank
     private String name;
 }

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<!-- 🔹 Навбар -->
+<div th:replace="fragments/header :: body"></div>
+
+<!-- 🔹 Контент -->
+<div class="container my-5 content">
+    <h3 class="fw-bold mb-4">Редактировать симптом</h3>
+
+    <!-- Форма редактирования -->
+    <form th:action="@{/symptoms/{id}(id=${symptom.id})}"
+          th:object="${symptom}"
+          method="post"
+          enctype="multipart/form-data"
+          class="w-100">
+
+        <!-- скрытое поле для ID -->
+        <input type="hidden" th:field="*{id}"/>
+
+        <div class="row">
+            <!-- Левая часть -->
+            <div class="col-md-6">
+                <!-- Название -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{name}" class="form-control" required>
+                    <div class="text-danger" th:if="${#fields.hasErrors('name')}"
+                         th:errors="*{name}">Ошибка
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка -->
+        <button type="submit" class="btn btn-success px-4 shadow mt-3">Обновить</button>
+        <a th:href="@{/symptoms}" class="btn btn-secondary px-4 shadow mt-3 ms-2">Отмена</a>
+    </form>
+</div>
+
+<!-- 🔹 Футер -->
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

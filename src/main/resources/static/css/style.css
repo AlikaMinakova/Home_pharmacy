@@ -1,4 +1,4 @@
-/* === Базовые стили (как раньше) === */
+/* === Общие стили (как раньше) === */
 body {
     background-color: #f9f9f9;
     font-family: "Segoe UI", sans-serif;
@@ -50,41 +50,20 @@ body {
     background: linear-gradient(145deg, #001f5c, #003580);
 }
 
-/* === Новые стили === */
-.btn-teal {
-    background-color: #00c4b3;
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 6px 16px;
+/* === Для фото === */
+.position-relative {
+    display: inline-block;
 }
 
-.btn-teal:hover {
-    background-color: #00a99d;
-    color: #fff;
-}
-
-.btn-navy {
-    background-color: #004aad;
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 6px 16px;
-}
-
-.btn-navy:hover {
-    background-color: #003580;
-    color: #fff;
-}
-
-.pagination .page-link {
-    border-radius: 50% !important;
-    margin: 0 4px;
-    color: #004aad;
-}
-
-.pagination .page-item.active .page-link {
-    background-color: #004aad;
-    border-color: #004aad;
-    color: #fff;
+.btn-remove-img {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #dc3545;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
 }

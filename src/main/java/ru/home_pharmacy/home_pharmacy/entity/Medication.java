@@ -2,6 +2,8 @@ package ru.home_pharmacy.home_pharmacy.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +26,8 @@ public class Medication {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Lob
+    @Column(name = "image", columnDefinition = "bytea")
+    @JdbcTypeCode(SqlTypes.BINARY)
     private byte[] image;
 
     @OneToMany(mappedBy = "medication", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -13,6 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class DiseaseRequest {
+    private Long id;
     @NotBlank
     private String name;
     @NotBlank

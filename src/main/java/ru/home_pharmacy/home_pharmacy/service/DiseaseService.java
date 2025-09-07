@@ -78,8 +78,12 @@ public class DiseaseService {
         disease.setName(request.getName());
         disease.setDescription(request.getDescription());
 
-        Set<Symptom> symptoms = new HashSet<>(symptomRepository.findAllById(request.getSymptomIds()));
-        disease.setSymptoms(symptoms);
+        if (request.getSymptomIds() != null) {
+            Set<Symptom> symptoms = new HashSet<>(symptomRepository.findAllById(request.getSymptomIds()));
+            disease.setSymptoms(symptoms);
+        } else {
+            disease.setSymptoms(new HashSet<>());
+        }
 
         Disease updated = diseaseRepository.save(disease);
         return mapToResponse(updated);
@@ -98,10 +102,10 @@ public class DiseaseService {
                 .id(disease.getId())
                 .name(disease.getName())
                 .description(disease.getDescription())
-                .symptoms(
+                .symptomIds(
                         disease.getSymptoms().stream()
-                                .map(Symptom::getName)
-                                .collect(Collectors.toSet())
+                                .map(Symptom::getId)
+                                .collect(Collectors.toList())
                 )
                 .build();
     }

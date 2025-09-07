@@ -54,7 +54,8 @@ public class DiseaseController {
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         model.addAttribute("disease", diseaseService.getDisease(id));
-        return "disease/list"; // diseases/edit.html
+        model.addAttribute("symptoms", symptomService.getAllSymptoms());
+        return "disease/update";
     }
     // обновление формы редактирования болезни
     @PostMapping("/{id}")

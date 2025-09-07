@@ -1,5 +1,6 @@
 package ru.home_pharmacy.home_pharmacy.dto;
 
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,5 +23,5 @@ public class DiseaseResponse {
     @NotBlank
     private String description;
     @NotNull
-    private Set<String> symptoms;
+    private List<Long> symptomIds;
 }

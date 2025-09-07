@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<!-- 🔹 Навбар -->
+<div th:replace="fragments/header :: body"></div>
+
+<!-- 🔹 Контент -->
+<div class="container my-5 content">
+    <h3 class="fw-bold mb-4">Добавить болезнь</h3>
+
+    <form th:action="@{/diseases}" th:object="${disease}" method="post"
+          enctype="multipart/form-data" class="w-100">
+        <div class="row">
+            <!-- Левая часть -->
+            <div class="col-md-6">
+                <!-- Название -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{name}" class="form-control" required>
+                    <div class="text-danger" th:if="${#fields.hasErrors('name')}"
+                         th:errors="*{name}">Ошибка
+                    </div>
+                </div>
+
+                <!-- Описание -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Описание</label>
+                    <input type="text" th:field="*{description}" class="form-control">
+                </div>
+            </div>
+
+            <!-- Правая часть -->
+            <div class="col-md-6">
+                <h4 class="fw-bold mb-3">Симптомы</h4>
+                <div class="list-group">
+                    <div class="form-check" th:each="symptom : ${symptoms}">
+                        <input class="form-check-input" type="checkbox"
+                               th:field="*{symptomIds}"
+                               th:value="${symptom.id}"
+                               th:id="${'symptom-' + symptom.id}">
+                        <label class="form-check-label" th:for="${'symptom-' + symptom.id}"
+                               th:text="${symptom.name}">Название симптома</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка -->
+        <button type="submit" class="btn btn-primary px-4 shadow mt-3">Создать</button>
+    </form>
+</div>
+
+<!-- 🔹 Футер -->
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

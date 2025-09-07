@@ -34,7 +34,10 @@ public class DiseaseService {
     // CREATE
     @Transactional
     public DiseaseResponse createDisease(DiseaseRequest request) {
-        Set<Symptom> symptoms = new HashSet<>(symptomRepository.findAllById(request.getSymptomIds()));
+        Set<Symptom> symptoms = new HashSet<>();
+        if (!request.getSymptomIds().isEmpty()) {
+            symptoms = new HashSet<>(symptomRepository.findAllById(request.getSymptomIds()));
+        }
 
         Disease disease = Disease.builder()
                 .name(request.getName())

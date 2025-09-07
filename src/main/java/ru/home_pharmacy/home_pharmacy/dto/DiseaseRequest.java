@@ -4,6 +4,8 @@ package ru.home_pharmacy.home_pharmacy.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -15,5 +17,6 @@ public class DiseaseRequest {
     private String name;
     @NotBlank
     private String description;
-    private Set<Long> symptomIds;
+    @Builder.Default
+    private List<Long> symptomIds  = new ArrayList<>();
 }

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<body>
+<header th:fragment="header">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm py-3">
+        <div class="container-fluid">
+            <!-- Логотип -->
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+                <img th:src="@{/images/logo.png}" alt="Аптека.дома" height="32" class="me-2">
+                <span class="fw-bold">Аптека.дома</span>
+            </a>
+
+            <!-- Меню -->
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/medicines}">Лекарства</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/symptoms}">Симптомы</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Поиск -->
+            <form class="d-flex" th:action="@{/search}" method="get">
+                <input class="form-control me-2" type="search" placeholder="Поиск" name="q">
+                <button class="btn btn-outline-success" type="submit">
+                    <i class="bi bi-search"></i> <!-- иконка bootstrap-icons -->
+                </button>
+            </form>
+        </div>
+    </nav>
+</header>
+</body>
+</html>

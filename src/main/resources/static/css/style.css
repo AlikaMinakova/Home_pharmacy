@@ -1,0 +1,90 @@
+/* === Базовые стили (как раньше) === */
+body {
+    background-color: #f9f9f9;
+    font-family: "Segoe UI", sans-serif;
+    color: #333;
+}
+
+.navbar {
+    border-bottom: 1px solid #eaeaea;
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: #333 !important;
+}
+
+.nav-link:hover {
+    color: #0d6efd !important;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+}
+
+.footer {
+    border-top: 1px solid #004aad;
+}
+
+.btn-success {
+    background-color: #00c38d;
+    border: none;
+}
+
+.btn-success:hover {
+    background-color: #00a879;
+}
+
+.btn-primary {
+    background: linear-gradient(145deg, #002b80, #004aad);
+    border: none;
+    border-radius: 25px;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(145deg, #001f5c, #003580);
+}
+
+/* === Новые стили === */
+.btn-teal {
+    background-color: #00c4b3;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 16px;
+}
+
+.btn-teal:hover {
+    background-color: #00a99d;
+    color: #fff;
+}
+
+.btn-navy {
+    background-color: #004aad;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 16px;
+}
+
+.btn-navy:hover {
+    background-color: #003580;
+    color: #fff;
+}
+
+.pagination .page-link {
+    border-radius: 50% !important;
+    margin: 0 4px;
+    color: #004aad;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #004aad;
+    border-color: #004aad;
+    color: #fff;
+}

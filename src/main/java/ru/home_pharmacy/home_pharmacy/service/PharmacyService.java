@@ -9,21 +9,24 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseResponse;
-import ru.home_pharmacy.home_pharmacy.dto.PharmacyOverviewResponse;
-import ru.home_pharmacy.home_pharmacy.dto.PharmacyRequest;
-import ru.home_pharmacy.home_pharmacy.dto.PharmacyResponse;
+import ru.home_pharmacy.home_pharmacy.dto.*;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.entity.Pharmacy;
+import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PharmacyRepository;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,41 +39,6 @@ public class PharmacyService {
     private final DiseaseRepository diseaseRepository;
 
 
-    public PharmacyResponse create(PharmacyRequest request) {
-        Medication medication = buildMedicationFromRequest(request, null);
-        medication = medicationRepository.save(medication);
-
-        Pharmacy pharmacy = Pharmacy.builder()
-                .medication(medication)
-                .quantity(request.getQuantity())
-                .expirationDate(request.getExpirationDate())
-                .purchaseDate(request.getPurchaseDate())
-                .build();
-
-        return toResponse(pharmacyRepository.save(pharmacy));
-    }
-
-
-    public PharmacyResponse update(Long id, PharmacyRequest request) {
-        Pharmacy pharmacy = pharmacyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
-
-        Medication medication = buildMedicationFromRequest(request, pharmacy.getMedication());
-        medication = medicationRepository.save(medication);
-
-        pharmacy.setMedication(medication);
-        pharmacy.setQuantity(request.getQuantity());
-        pharmacy.setExpirationDate(request.getExpirationDate());
-        pharmacy.setPurchaseDate(request.getPurchaseDate());
-
-        return toResponse(pharmacyRepository.save(pharmacy));
-    }
-
-
-    public void delete(Long id) {
-        pharmacyRepository.deleteById(id);
-    }
-
     @Transactional(readOnly = true)
     public PharmacyResponse getById(Long id) {
         return pharmacyRepository.findById(id)
@@ -78,14 +46,6 @@ public class PharmacyService {
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
     }
 
-
-    @Transactional(readOnly = true)
-    public List<PharmacyResponse> getAll() {
-        return pharmacyRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-    }
 
 
     @Transactional(readOnly = true)
@@ -125,29 +85,70 @@ public class PharmacyService {
                 .build();
     }
 
-    // 🔹 Вспомогательный метод для Medication
-    private Medication buildMedicationFromRequest(PharmacyRequest request, Medication existing) {
-        Medication medication = existing != null ? existing : new Medication();
-
-        medication.setName(request.getMedicationName());
+    @Transactional
+    public PharmacyResponse create(PharmacyRequest request) {
+        // 1. Сохраняем Medication
+        Medication medication = new Medication();
+        medication.setName(request.getMedication().getName());
         medication.setDescription(request.getMedicationDescription());
-
-        // картинка
         if (request.getImage() != null && !request.getImage().isEmpty()) {
             try {
-                medication.setImage(request.getImage().getBytes());
+                // Папка для хранения файлов
+                String uploadDir = new File("src/main/resources/static/uploads").getAbsolutePath();
+
+                File dir = new File(uploadDir);
+
+                // Генерируем уникальное имя файла
+                String filename = LocalDateTime.now()
+                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+                        + "_" + Objects.requireNonNull(request.getImage().getOriginalFilename());
+
+                // Полный путь для сохранения
+                File uploadFile = new File(dir, filename);
+
+                // Сохраняем файл
+                request.getImage().transferTo(uploadFile);
+
+                // Путь для Thymeleaf
+                medication.setImage("/uploads/" + filename);
+
             } catch (IOException e) {
-                throw new RuntimeException("Ошибка загрузки изображения", e);
+                throw new RuntimeException("Ошибка при сохранении файла", e);
             }
         }
 
-        // болезни
-        if (request.getDiseaseIds() != null && !request.getDiseaseIds().isEmpty()) {
-            var diseases = new HashSet<Disease>(diseaseRepository.findAllById(request.getDiseaseIds()));
-            medication.setDiseases(diseases);
-        }
 
-        return medication;
+        // находим болезни по id
+        Set<Disease> diseases = new HashSet<>(diseaseRepository.findAllById(
+                request.getMedication()
+                        .getDiseases()
+                        .stream()
+                        .map(Disease::getId)
+                        .collect(Collectors.toSet())
+        ));
+
+        medication.setDiseases(diseases);
+
+        medication = medicationRepository.save(medication);
+
+        // 2. Сохраняем Pharmacy (кол-во и даты)
+        Pharmacy pharmacy = new Pharmacy();
+        pharmacy.setMedication(medication);
+        pharmacy.setQuantity(request.getQuantity());
+        pharmacy.setPurchaseDate(request.getPurchaseDate());
+        pharmacy.setExpirationDate(request.getExpirationDate());
+
+        Pharmacy saved = pharmacyRepository.save(pharmacy);
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public void deleteMedication(Long id) {
+        if (!medicationRepository.existsById(id)) {
+            throw new RuntimeException("Medication not found with id = " + id);
+        }
+        System.out.println(id);
+        medicationRepository.deleteById(id);
     }
 
     // 🔹 Конвертер в DTO
@@ -155,7 +156,7 @@ public class PharmacyService {
         return PharmacyResponse.builder()
                 .id(pharmacy.getId())
                 .medicationId(pharmacy.getMedication().getId())
-                .medicationName(pharmacy.getMedication().getName())
+                .medication(pharmacy.getMedication())
                 .medicationDescription(pharmacy.getMedication().getDescription())
                 .diseaseNames(pharmacy.getMedication().getDiseases()
                         .stream()
@@ -164,6 +165,7 @@ public class PharmacyService {
                 .quantity(pharmacy.getQuantity())
                 .expirationDate(pharmacy.getExpirationDate())
                 .purchaseDate(pharmacy.getPurchaseDate())
+                .image(pharmacy.getMedication().getImage())
                 .build();
     }
 }

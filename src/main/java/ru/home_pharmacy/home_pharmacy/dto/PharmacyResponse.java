@@ -3,6 +3,7 @@ package ru.home_pharmacy.home_pharmacy.dto;
 
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.home_pharmacy.home_pharmacy.entity.Medication;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,11 +15,11 @@ import java.util.List;
 public class PharmacyResponse {
     private Long id;
     private Long medicationId;
-    private String medicationName;
+    private Medication medication;
     private String medicationDescription;
     private List<String> diseaseNames;
     private Integer quantity;
     private LocalDate expirationDate;
     private LocalDate purchaseDate;
-    private MultipartFile image;
+    private String image;
 }

@@ -20,39 +20,34 @@
         <!-- скрытое поле для ID -->
         <input type="hidden" th:field="*{id}"/>
 
-        <div class="row">
-            <!-- Левая часть -->
-            <div class="col-md-6">
-                <!-- Название -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
-                    <input type="text" th:field="*{name}" class="form-control" required>
-                    <div class="text-danger" th:if="${#fields.hasErrors('name')}"
-                         th:errors="*{name}">Ошибка
-                    </div>
-                </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{name}" required>
+        </div>
 
-                <!-- Описание -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Описание</label>
-                    <input type="text" th:field="*{description}" class="form-control">
-                </div>
-            </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Описание <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{description}" required>
+        </div>
 
-            <!-- Правая часть -->
-            <div class="col-md-6">
-                <h4 class="fw-bold mb-3">Симптомы</h4>
-                <div class="list-group">
-                    <div class="form-check" th:each="symptom : ${symptoms}">
-                        <input class="form-check-input" type="checkbox"
-                               th:field="*{symptomIds}"
-                               th:value="${symptom.id}"
-                               th:id="${'symptom-' + symptom.id}">
-                        <label class="form-check-label" th:for="${'symptom-' + symptom.id}"
-                               th:text="${symptom.name}">Название симптома</label>
-                    </div>
-                </div>
-            </div>
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Симптомы</label>
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                <tr>
+                    <th style="width: 50px;">Выбрать</th>
+                    <th>Название</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="symptom : ${symptoms}">
+                    <td class="text-center">
+                        <input type="checkbox" th:value="${symptom.id}" th:field="*{symptomIds}">
+                    </td>
+                    <td th:text="${symptom.name}"></td>
+                </tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- Кнопка -->

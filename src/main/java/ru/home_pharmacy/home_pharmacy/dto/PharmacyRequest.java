@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.home_pharmacy.home_pharmacy.entity.Medication;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,21 +14,12 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class PharmacyRequest {
-
-    @NotBlank
-    private String medicationName;
-
+    private Long medicationId;
+    private Medication medication;
     private String medicationDescription;
-
-    private MultipartFile image;
-
-    private List<Long> diseaseIds;
-
-    @NotNull
+    private List<String> diseaseNames;
     private Integer quantity;
-
-    @NotNull
     private LocalDate expirationDate;
-
     private LocalDate purchaseDate;
+    private MultipartFile image;
 }

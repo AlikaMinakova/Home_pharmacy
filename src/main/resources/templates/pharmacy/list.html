@@ -24,12 +24,16 @@
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         <div class="col" th:each="pharmacy : ${pharmacyPage.all}">
             <div class="card h-100 shadow-sm">
-                <img th:if="${pharmacy.medicationId != null}"
+                <img th:if="${pharmacy.image != null}"
                      th:src="${pharmacy.image}"
                      class="card-img-top" alt="лекарство">
                 <div class="card-body">
                     <p class="text-success small fw-semibold">Есть в аптечке</p>
-                    <h6 class="fw-bold" th:text="${pharmacy.medicationName}"></h6>
+                    <h6 class="fw-bold">
+                        <a th:href="@{/pharmacies/detail/{id}(id=${pharmacy.id})}"
+                           th:text="${pharmacy.medication.name}"
+                           class="text-decoration-none text-dark"></a>
+                    </h6>
                     <ul class="list-unstyled small text-muted">
                         <li th:text="'Дата покупки: ' + ${pharmacy.purchaseDate}"></li>
                         <li th:text="'Срок годности: ' + ${pharmacy.expirationDate}"></li>
@@ -98,7 +102,11 @@
                      class="card-img-top" alt="лекарство">
                 <div class="card-body">
                     <p class="text-success small fw-semibold">Есть в аптечке</p>
-                    <h6 class="fw-bold" th:text="${recently.medicationName}"></h6>
+                    <h6 class="fw-bold">
+                        <a th:href="@{/pharmacies/detail/{id}(id=${recently.medicationId})}"
+                           th:text="${recently.medication.name}"
+                           class="text-decoration-none text-dark"></a>
+                    </h6>
                     <ul class="list-unstyled small text-muted">
                         <li th:text="'Дата покупки: ' + ${recently.purchaseDate}"></li>
                         <li th:text="'Срок годности: ' + ${recently.expirationDate}"></li>
@@ -112,18 +120,22 @@
 
     <h4 class="fw-bold mb-4">Заканчивается срок годности</h4>
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-        <div class="col" th:each="recently : ${pharmacyPage.expiringSoon}">
+        <div class="col" th:each="expiring : ${pharmacyPage.expiringSoon}">
             <div class="card h-100 shadow-sm">
-                <img th:if="${recently.medicationId != null}"
-                     th:src="${recently.image}"
+                <img th:if="${expiring.medicationId != null}"
+                     th:src="${expiring.image}"
                      class="card-img-top" alt="лекарство">
                 <div class="card-body">
                     <p class="text-success small fw-semibold">Есть в аптечке</p>
-                    <h6 class="fw-bold" th:text="${recently.medicationName}"></h6>
+                    <h6 class="fw-bold">
+                        <a th:href="@{/pharmacies/detail/{id}(id=${expiring.medicationId})}"
+                           th:text="${expiring.medication.name}"
+                           class="text-decoration-none text-dark"></a>
+                    </h6>
                     <ul class="list-unstyled small text-muted">
-                        <li th:text="'Дата покупки: ' + ${recently.purchaseDate}"></li>
-                        <li th:text="'Срок годности: ' + ${recently.expirationDate}"></li>
-                        <li th:text="'Количество: ' + ${recently.quantity} + ' шт'"></li>
+                        <li th:text="'Дата покупки: ' + ${expiring.purchaseDate}"></li>
+                        <li th:text="'Срок годности: ' + ${expiring.expirationDate}"></li>
+                        <li th:text="'Количество: ' + ${expiring.quantity} + ' шт'"></li>
                     </ul>
                 </div>
             </div>

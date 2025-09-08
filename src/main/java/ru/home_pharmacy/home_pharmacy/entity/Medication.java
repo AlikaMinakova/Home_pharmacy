@@ -26,9 +26,8 @@ public class Medication {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "image", columnDefinition = "bytea")
-    @JdbcTypeCode(SqlTypes.BINARY)
-    private byte[] image;
+    @Column(name = "image")
+    private String image;
 
     @OneToMany(mappedBy = "medication", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Pharmacy> pharmacies = new HashSet<>();

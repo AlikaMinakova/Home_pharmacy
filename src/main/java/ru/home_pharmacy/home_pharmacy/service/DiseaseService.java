@@ -57,6 +57,10 @@ public class DiseaseService {
         return mapToResponse(disease);
     }
 
+    public List<DiseaseResponse> getAll() {
+        return diseaseRepository.findAll().stream().map(this::mapToResponse).toList();
+    }
+
 
     @Transactional(readOnly = true)
     public Page<DiseaseResponse> getAllDiseases(int page, int size) {

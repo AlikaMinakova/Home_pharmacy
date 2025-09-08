@@ -12,18 +12,10 @@
 
     <form th:action="@{/symptoms}" th:object="${symptom}" method="post"
           enctype="multipart/form-data" class="w-100">
-        <div class="row">
-            <!-- Левая часть -->
-            <div class="col-md-6">
-                <!-- Название -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
-                    <input type="text" th:field="*{name}" class="form-control" required>
-                    <div class="text-danger" th:if="${#fields.hasErrors('name')}"
-                         th:errors="*{name}">Ошибка
-                    </div>
-                </div>
-            </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{name}" required>
         </div>
 
         <!-- Кнопка -->

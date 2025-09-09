@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ru.home_pharmacy.home_pharmacy.dto.*;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
@@ -45,6 +46,7 @@ public class PharmacyService {
                 .map(this::toResponse)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
     }
+
 
 
     @Transactional(readOnly = true)
@@ -86,29 +88,43 @@ public class PharmacyService {
 
     @Transactional
     public PharmacyResponse create(PharmacyRequest request) {
-        // 1. Сохраняем Medication
+        // создаём новое лекарство
         Medication medication = new Medication();
+        fillMedicationFromRequest(medication, request);
+
+        medication = medicationRepository.save(medication);
+
+        Pharmacy pharmacy = new Pharmacy();
+        fillPharmacyFromRequest(pharmacy, medication, request);
+
+        Pharmacy saved = pharmacyRepository.save(pharmacy);
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public PharmacyResponse update(Long id, PharmacyRequest request) {
+        Pharmacy pharmacy = pharmacyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pharmacy not found with id: " + id));
+
+        Medication medication = pharmacy.getMedication();
+        fillMedicationFromRequest(medication, request);
+
+        medicationRepository.save(medication);
+
+        fillPharmacyFromRequest(pharmacy, medication, request);
+
+        Pharmacy updated = pharmacyRepository.save(pharmacy);
+        return toResponse(updated);
+    }
+
+    private void fillMedicationFromRequest(Medication medication, PharmacyRequest request) {
         medication.setName(request.getMedication().getName());
         medication.setDescription(request.getMedicationDescription());
+
+        // загружаем картинку (если есть)
         if (request.getImage() != null && !request.getImage().isEmpty()) {
-            try {
-                String uploadDir = new File("uploads").getAbsolutePath();
-                File dir = new File(uploadDir);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-                String filename = LocalDateTime.now()
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
-                        + "_" + Objects.requireNonNull(request.getImage().getOriginalFilename());
-                File uploadFile = new File(dir, filename);
-                request.getImage().transferTo(uploadFile);
-                medication.setImage("/" + filename);
-
-            } catch (IOException e) {
-                throw new RuntimeException("Ошибка при сохранении файла", e);
-            }
+            medication.setImage(uploadImage(request.getImage()));
         }
-
 
         // находим болезни по id
         Set<Disease> diseases = new HashSet<>(diseaseRepository.findAllById(
@@ -118,74 +134,37 @@ public class PharmacyService {
                         .map(Disease::getId)
                         .collect(Collectors.toSet())
         ));
-
         medication.setDiseases(diseases);
+    }
 
-        medication = medicationRepository.save(medication);
-
-        // 2. Сохраняем Pharmacy (кол-во и даты)
-        Pharmacy pharmacy = new Pharmacy();
+    private void fillPharmacyFromRequest(Pharmacy pharmacy, Medication medication, PharmacyRequest request) {
         pharmacy.setMedication(medication);
         pharmacy.setQuantity(request.getQuantity());
         pharmacy.setPurchaseDate(request.getPurchaseDate());
         pharmacy.setExpirationDate(request.getExpirationDate());
-
-        Pharmacy saved = pharmacyRepository.save(pharmacy);
-        return toResponse(saved);
     }
 
-    @Transactional
-    public PharmacyResponse update(Long id, PharmacyRequest request) {
-        // 1. Находим запись Pharmacy
-        Pharmacy pharmacy = pharmacyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pharmacy not found with id: " + id));
-
-        Medication medication = pharmacy.getMedication();
-
-        // 2. Обновляем данные лекарства
-        medication.setName(request.getMedication().getName());
-        medication.setDescription(request.getMedicationDescription());
-
-        // 3. Загружаем новое фото (если есть)
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            try {
-                String uploadDir = new File("uploads").getAbsolutePath();
-                File dir = new File(uploadDir);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-                String filename = LocalDateTime.now()
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
-                        + "_" + Objects.requireNonNull(request.getImage().getOriginalFilename());
-                File uploadFile = new File(dir, filename);
-                request.getImage().transferTo(uploadFile);
-                medication.setImage("/" + filename);
-            } catch (IOException e) {
-                throw new RuntimeException("Ошибка при сохранении файла", e);
+    private String uploadImage(MultipartFile image) {
+        try {
+            String uploadDir = new File("uploads").getAbsolutePath();
+            File dir = new File(uploadDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
             }
+
+            String filename = LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+                    + "_" + Objects.requireNonNull(image.getOriginalFilename());
+
+            File uploadFile = new File(dir, filename);
+            image.transferTo(uploadFile);
+
+            return "/" + filename;
+        } catch (IOException e) {
+            throw new RuntimeException("Ошибка при сохранении файла", e);
         }
-
-        // 4. Обновляем болезни
-        Set<Disease> diseases = new HashSet<>(diseaseRepository.findAllById(
-                request.getMedication()
-                        .getDiseases()
-                        .stream()
-                        .map(Disease::getId)
-                        .collect(Collectors.toSet())
-        ));
-        medication.setDiseases(diseases);
-
-        // 5. Обновляем количество и даты
-        pharmacy.setQuantity(request.getQuantity());
-        pharmacy.setPurchaseDate(request.getPurchaseDate());
-        pharmacy.setExpirationDate(request.getExpirationDate());
-
-        // 6. Сохраняем изменения
-        medicationRepository.save(medication);
-        Pharmacy updated = pharmacyRepository.save(pharmacy);
-
-        return toResponse(updated);
     }
+
 
     @Transactional
     public void deleteMedication(Long id) {

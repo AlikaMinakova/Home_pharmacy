@@ -70,7 +70,11 @@ public class PharmacyController {
     @GetMapping("/{id}")
     public String showUpdateForm(@PathVariable Long id,
                                  Model model) {
+        PharmacyResponse p = pharmacyService.getById(id);
         model.addAttribute("pharmacy", pharmacyService.getById(id));
+        System.out.println(p.getExpirationDate());
+        System.out.println(p.getPurchaseDate());
+
         model.addAttribute("diseases", diseaseService.getAll());
         return "pharmacy/update";
     }

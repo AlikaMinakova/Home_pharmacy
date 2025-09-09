@@ -9,78 +9,111 @@
 
 <!-- 🔹 Контент -->
 <div class="container my-5">
-  <h3 class="fw-bold mb-4">Добавить лекарство</h3>
+    <h3 class="fw-bold mb-4">Добавить лекарство</h3>
 
-  <!-- Форма добавления -->
-  <form th:action="@{/pharmacies}" th:object="${pharmacy}" method="post" enctype="multipart/form-data" class="w-75">
+    <!-- Форма добавления -->
+    <form th:action="@{/pharmacies}" th:object="${pharmacy}" method="post" enctype="multipart/form-data" class="w-75">
 
-    <!-- Название -->
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
-      <input type="text" class="form-control" th:field="*{medication.name}" required>
-    </div>
+        <!-- Название -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{medication.name}" required>
+        </div>
 
-    <!-- Описание -->
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Описание <span class="text-danger">*</span></label>
-      <textarea class="form-control" rows="3" th:field="*{medicationDescription}" required></textarea>
-    </div>
+        <!-- Описание -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Описание <span class="text-danger">*</span></label>
+            <textarea class="form-control" rows="3" th:field="*{medicationDescription}" required></textarea>
+        </div>
 
-    <!-- Количество -->
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Количество, шт <span class="text-danger">*</span></label>
-      <input type="number" class="form-control" th:field="*{quantity}" required>
-    </div>
+        <!-- Количество -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Количество, шт <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" th:field="*{quantity}" required>
+        </div>
 
-    <!-- Дата покупки -->
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Дата покупки</label>
-      <input type="date" class="form-control" th:field="*{purchaseDate}">
-    </div>
+        <!-- Дата покупки -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Дата покупки</label>
+            <input type="date" class="form-control" th:field="*{purchaseDate}">
+        </div>
 
-    <!-- Срок годности -->
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Срок годности до <span class="text-danger">*</span></label>
-      <input type="date" class="form-control" th:field="*{expirationDate}" required>
-    </div>
+        <!-- Срок годности -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Срок годности до <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" th:field="*{expirationDate}" required>
+        </div>
 
-    <!-- Фото -->
-    <div class="mb-4">
-      <label class="form-label fw-semibold">Фото</label>
-      <input class="form-control" type="file" th:field="*{image}">
-    </div>
+        <!-- Фото -->
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Фото</label>
 
-    <!-- 🔹 Список болезней -->
-    <div class="mb-4">
-      <label class="form-label fw-semibold">Болезни</label>
-      <table class="table table-bordered table-hover">
-        <thead class="table-light">
-        <tr>
-          <th style="width: 50px;">Выбрать</th>
-          <th>Название</th>
-          <th>Описание</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="disease : ${diseases}">
-          <td class="text-center">
-            <input type="checkbox" th:value="${disease.id}" th:field="*{medication.diseases}">
-          </td>
-          <td th:text="${disease.name}"></td>
-          <td th:text="${disease.description}"></td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+            <!-- 🔹 Превью (скрыто по умолчанию) -->
+            <div class="mb-2">
+                <img id="previewImage"
+                     src="#"
+                     alt="Предпросмотр"
+                     class="img-thumbnail"
+                     style="max-width: 200px; max-height: 200px; display: none;">
+            </div>
 
-    <!-- Кнопка -->
-    <button type="submit" class="btn btn-primary px-4 shadow">Создать</button>
-  </form>
+            <!-- 🔹 Выбор фото -->
+            <input class="form-control" type="file" th:field="*{image}" id="imageInput">
+        </div>
+
+        <!-- JS -->
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const input = document.getElementById("imageInput");
+                const preview = document.getElementById("previewImage");
+
+                input.addEventListener("change", () => {
+                    const file = input.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            preview.src = e.target.result;
+                            preview.style.display = "block"; // показать превью
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        preview.src = "#";
+                        preview.style.display = "none"; // скрыть если фото убрали
+                    }
+                });
+            });
+        </script>
+        <!-- 🔹 Список болезней -->
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Болезни</label>
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                <tr>
+                    <th style="width: 50px;">Выбрать</th>
+                    <th>Название</th>
+                    <th>Описание</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="disease : ${diseases}">
+                    <td class="text-center">
+                        <input type="checkbox" th:value="${disease.id}" th:field="*{medication.diseases}">
+                    </td>
+                    <td th:text="${disease.name}"></td>
+                    <td th:text="${disease.description}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Кнопка -->
+        <button type="submit" class="btn btn-primary px-4 shadow">Создать</button>
+    </form>
 </div>
 
 
-  <!-- 🔹 Футер -->
-  <div th:replace="fragments/footer :: footer"></div>
+<!-- 🔹 Футер -->
+<div th:replace="fragments/footer :: footer"></div>
 
 </body>
 </html>

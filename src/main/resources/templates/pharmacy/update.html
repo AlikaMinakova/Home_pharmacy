@@ -38,17 +38,49 @@
             <input type="date" class="form-control" th:field="*{purchaseDate}">
         </div>
 
+
         <!-- Срок годности -->
         <div class="mb-3">
             <label class="form-label fw-semibold">Срок годности до <span class="text-danger">*</span></label>
             <input type="date" class="form-control" th:field="*{expirationDate}" required>
         </div>
 
-        <!-- Фото -->
         <div class="mb-4">
             <label class="form-label fw-semibold">Фото</label>
-            <input class="form-control" type="file" th:field="*{image}">
+
+            <!-- 🔹 Фото (текущее или новое) -->
+            <div class="mb-2">
+                <img id="currentImage"
+                     th:if="*{image != null}"
+                     th:src="*{image}"
+                     alt="Фото лекарства"
+                     class="img-thumbnail"
+                     style="max-width: 200px; max-height: 200px;">
+            </div>
+
+            <!-- 🔹 Выбор нового фото -->
+            <input class="form-control" type="file" th:field="*{image}" id="imageInput">
         </div>
+
+        <!-- 🔹 JS для замены фото -->
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const input = document.getElementById("imageInput");
+                const currentImage = document.getElementById("currentImage");
+
+                input.addEventListener("change", () => {
+                    const file = input.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            currentImage.src = e.target.result; // заменяем картинку
+                            currentImage.style.display = "block"; // на случай если раньше фото не было
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            });
+        </script>
 
 
         <!-- 🔹 Список болезней -->
@@ -75,7 +107,8 @@
         </div>
 
         <!-- Кнопка -->
-        <button type="submit" class="btn btn-primary px-4 shadow">Создать</button>
+        <button type="submit" class="btn btn-success px-4 shadow mt-3">Обновить</button>
+        <a th:href="@{/pharmacies}" class="btn btn-secondary px-4 shadow mt-3 ms-2">Отмена</a>
     </form>
 </div>
 

@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class PharmacyRequest {
+    private Long id;
     private Long medicationId;
     private Medication medication;
     private String medicationDescription;

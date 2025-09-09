@@ -28,16 +28,16 @@ public class PharmacyController {
     private final PharmacyService pharmacyService;
     private final DiseaseService diseaseService;
 
-    // список болезней
+    // список лекарств
     @GetMapping
-    public String listDiseases(@RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "5") int size,
-                               Model model) {
+    public String listMedications(@RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "5") int size,
+                                  Model model) {
         model.addAttribute("pharmacyPage", pharmacyService.getPharmacyOverview(page, size));
         return "pharmacy/list";
     }
 
-
+    // страниуца просмотра
     @GetMapping("/detail/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         PharmacyResponse pharmacy = pharmacyService.getById(id);
@@ -50,7 +50,7 @@ public class PharmacyController {
         return "pharmacy/detail";
     }
 
-    // форма добавления болезни
+    // форма добавления лекарсва
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("pharmacy", new PharmacyRequest());
@@ -58,21 +58,30 @@ public class PharmacyController {
         return "pharmacy/create";
     }
 
-    // сохранение формы болезни
+    // сохранение формы лекарства
     @PostMapping()
-    public String createDisease(@ModelAttribute("disease") PharmacyRequest pharmacyRequest) {
+    public String createMedication(@ModelAttribute("pharmacy") PharmacyRequest pharmacyRequest) {
         pharmacyService.create(pharmacyRequest);
         return "redirect:/pharmacies";
     }
-//
-//
-//    // обновление формы редактирования болезни
-//    @PostMapping("/{id}")
-//    public String updateDisease(@PathVariable Long id,
-//                                @ModelAttribute DiseaseRequest diseaseRequest) {
-//        diseaseService.updateDisease(id, diseaseRequest);
-//        return "redirect:/diseases";
-//    }
+
+
+// форма редактирования лекарсва
+    @GetMapping("/{id}")
+    public String showUpdateForm(@PathVariable Long id,
+                                 Model model) {
+        model.addAttribute("pharmacy", pharmacyService.getById(id));
+        model.addAttribute("diseases", diseaseService.getAll());
+        return "pharmacy/update";
+    }
+
+    // сохранение формы редоктирования лекарства
+    @PostMapping("/{id}")
+    public String updateMedication(@PathVariable Long id,
+                                   @ModelAttribute("pharmacy") PharmacyRequest pharmacyRequest) {
+        pharmacyService.update(id, pharmacyRequest);
+        return "redirect:/pharmacies";
+    }
 
     // удаление болезни
     @PostMapping("/{id}/delete")

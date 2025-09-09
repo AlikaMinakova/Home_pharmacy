@@ -47,7 +47,6 @@ public class PharmacyService {
     }
 
 
-
     @Transactional(readOnly = true)
     public Page<PharmacyResponse> getAllMedications(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("purchaseDate").ascending());
@@ -93,24 +92,17 @@ public class PharmacyService {
         medication.setDescription(request.getMedicationDescription());
         if (request.getImage() != null && !request.getImage().isEmpty()) {
             try {
-                // Папка для хранения файлов
-                String uploadDir = new File("src/main/resources/static/uploads").getAbsolutePath();
-
+                String uploadDir = new File("uploads").getAbsolutePath();
                 File dir = new File(uploadDir);
-
-                // Генерируем уникальное имя файла
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
                 String filename = LocalDateTime.now()
                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
                         + "_" + Objects.requireNonNull(request.getImage().getOriginalFilename());
-
-                // Полный путь для сохранения
                 File uploadFile = new File(dir, filename);
-
-                // Сохраняем файл
                 request.getImage().transferTo(uploadFile);
-
-                // Путь для Thymeleaf
-                medication.setImage("/uploads/" + filename);
+                medication.setImage("/" + filename);
 
             } catch (IOException e) {
                 throw new RuntimeException("Ошибка при сохранении файла", e);
@@ -140,6 +132,59 @@ public class PharmacyService {
 
         Pharmacy saved = pharmacyRepository.save(pharmacy);
         return toResponse(saved);
+    }
+
+    @Transactional
+    public PharmacyResponse update(Long id, PharmacyRequest request) {
+        // 1. Находим запись Pharmacy
+        Pharmacy pharmacy = pharmacyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pharmacy not found with id: " + id));
+
+        Medication medication = pharmacy.getMedication();
+
+        // 2. Обновляем данные лекарства
+        medication.setName(request.getMedication().getName());
+        medication.setDescription(request.getMedicationDescription());
+
+        // 3. Загружаем новое фото (если есть)
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            try {
+                String uploadDir = new File("uploads").getAbsolutePath();
+                File dir = new File(uploadDir);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+                String filename = LocalDateTime.now()
+                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
+                        + "_" + Objects.requireNonNull(request.getImage().getOriginalFilename());
+                File uploadFile = new File(dir, filename);
+                request.getImage().transferTo(uploadFile);
+                medication.setImage("/" + filename);
+            } catch (IOException e) {
+                throw new RuntimeException("Ошибка при сохранении файла", e);
+            }
+        }
+
+        // 4. Обновляем болезни
+        Set<Disease> diseases = new HashSet<>(diseaseRepository.findAllById(
+                request.getMedication()
+                        .getDiseases()
+                        .stream()
+                        .map(Disease::getId)
+                        .collect(Collectors.toSet())
+        ));
+        medication.setDiseases(diseases);
+
+        // 5. Обновляем количество и даты
+        pharmacy.setQuantity(request.getQuantity());
+        pharmacy.setPurchaseDate(request.getPurchaseDate());
+        pharmacy.setExpirationDate(request.getExpirationDate());
+
+        // 6. Сохраняем изменения
+        medicationRepository.save(medication);
+        Pharmacy updated = pharmacyRepository.save(pharmacy);
+
+        return toResponse(updated);
     }
 
     @Transactional

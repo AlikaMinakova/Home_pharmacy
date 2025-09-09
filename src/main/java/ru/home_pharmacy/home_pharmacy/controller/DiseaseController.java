@@ -12,8 +12,6 @@ import ru.home_pharmacy.home_pharmacy.service.DiseaseService;
 import org.springframework.ui.Model;
 import ru.home_pharmacy.home_pharmacy.service.SymptomService;
 
-import java.security.Principal;
-
 
 @Controller
 @RequestMapping("/diseases")
@@ -57,6 +55,7 @@ public class DiseaseController {
         model.addAttribute("symptoms", symptomService.getAllSymptoms());
         return "disease/update";
     }
+
     // обновление формы редактирования болезни
     @PostMapping("/{id}")
     public String updateDisease(@PathVariable Long id,

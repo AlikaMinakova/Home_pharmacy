@@ -3,18 +3,14 @@
 <head th:replace="fragments/header :: head"></head>
 <body>
 
-<!-- 🔹 Навбар -->
 <div th:replace="fragments/header :: body"></div>
 
-<!-- 🔹 Контент -->
 <div class="container my-5">
 
-    <!-- Название лекарства -->
     <h3 class="fw-bold mb-4" th:text="${medication.name}"></h3>
 
     <div class="row">
 
-        <!-- Основное изображение -->
         <div class="col-md-4 text-center">
             <img th:if="${medication.image != null}"
                  th:src="@{${medication.image}}"
@@ -22,14 +18,20 @@
                  alt="Фото лекарства">
         </div>
 
-        <!-- Инфо о лекарстве -->
+
         <div class="col-md-6">
             <div class="d-flex justify-content-end gap-2 mb-3">
-                <a th:href="@{/pharmacies/{id}(id=${pharmacy.id})}" class="btn btn-success">Редактировать</a>
-                <form th:action="@{/pharmacies/{id}/delete(id=${pharmacy.medication.id})}" method="post" class="d-inline">
-                    <button type="submit" class="btn btn-outline-danger">Удалить</button>
+
+                <a th:href="@{/pharmacies/{id}(id=${pharmacy.id})}"
+                   class="btn btn-edit px-4">Редактировать</a>
+
+
+                <form th:action="@{/pharmacies/{id}/delete(id=${pharmacy.medication.id})}"
+                      method="post" class="d-inline">
+                    <button type="submit" class="btn btn-delete px-4">Удалить</button>
                 </form>
             </div>
+
 
             <div class="card p-3 mb-4 shadow-sm">
                 <h6 class="fw-bold">Основное</h6>
@@ -68,7 +70,7 @@
 <footer class="footer bg-primary text-center py-4">
     <div th:replace="fragments/footer :: footer"></div>
 </footer>
-<!-- 🔹 Футер -->
+
 
 </body>
 </html>

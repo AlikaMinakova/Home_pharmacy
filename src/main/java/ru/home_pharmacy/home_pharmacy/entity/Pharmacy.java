@@ -28,5 +28,5 @@ public class Pharmacy {
     private LocalDate expirationDate;
 
     @Column(name = "purchase_date")
-    private LocalDate purchaseDate; 
+    private LocalDate purchaseDate;
 }

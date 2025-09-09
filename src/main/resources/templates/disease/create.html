@@ -3,10 +3,8 @@
 <head th:replace="fragments/header :: head"></head>
 <body>
 
-<!-- 🔹 Навбар -->
 <div th:replace="fragments/header :: body"></div>
 
-<!-- 🔹 Контент -->
 <div class="container my-5 content">
     <h3 class="fw-bold mb-4">Добавить болезнь</h3>
 
@@ -42,12 +40,10 @@
             </table>
         </div>
 
-        <!-- Кнопка -->
-        <button type="submit" class="btn btn-primary px-4 shadow mt-3">Создать</button>
+        <button type="submit" class="btn btn-save px-4">Создать</button>
     </form>
 </div>
 
-<!-- 🔹 Футер -->
 <div th:replace="fragments/footer :: footer"></div>
 
 </body>

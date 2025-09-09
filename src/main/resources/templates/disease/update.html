@@ -3,21 +3,20 @@
 <head th:replace="fragments/header :: head"></head>
 <body>
 
-<!-- 🔹 Навбар -->
+
 <div th:replace="fragments/header :: body"></div>
 
-<!-- 🔹 Контент -->
+
 <div class="container my-5 content">
     <h3 class="fw-bold mb-4">Редактировать болезнь</h3>
 
-    <!-- Форма редактирования -->
+
     <form th:action="@{/diseases/{id}(id=${disease.id})}"
           th:object="${disease}"
           method="post"
           enctype="multipart/form-data"
           class="w-100">
 
-        <!-- скрытое поле для ID -->
         <input type="hidden" th:field="*{id}"/>
 
         <div class="mb-3">
@@ -50,13 +49,11 @@
             </table>
         </div>
 
-        <!-- Кнопка -->
-        <button type="submit" class="btn btn-success px-4 shadow mt-3">Обновить</button>
-        <a th:href="@{/diseases}" class="btn btn-secondary px-4 shadow mt-3 ms-2">Отмена</a>
+        <button type="submit" class="btn btn-save px-4">Обновить</button>
+        <a th:href="@{/diseases}" class="btn btn-cancel px-4">Отмена</a>
     </form>
 </div>
 
-<!-- 🔹 Футер -->
 <div th:replace="fragments/footer :: footer"></div>
 
 </body>

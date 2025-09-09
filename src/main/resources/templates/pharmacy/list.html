@@ -3,28 +3,28 @@
 <head th:replace="fragments/header :: head"></head>
 <body>
 
-<!-- 🔹 Навбар -->
 <div th:replace="fragments/header :: body"></div>
 
-<!-- 🔹 Контент -->
 <div class="container my-5">
     <h3 class="fw-bold mb-4">Аптечка</h3>
 
-    <!-- Сортировка -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <span class="fw-semibold">СОРТИРОВАТЬ:</span>
-        <select class="form-select w-auto">
-            <option>По дате</option>
-            <option>По цене</option>
-            <option selected>По сроку годности</option>
-        </select>
+        <form th:action="@{/pharmacies}" method="get" class="ms-3">
+            <select name="sort" class="form-select w-auto" onchange="this.form.submit()">
+                <option th:value="purchaseDate" th:selected="${sort == 'purchaseDate'}">По дате покупки</option>
+                <option th:value="expirationDate" th:selected="${sort == 'expirationDate'}">По сроку годности</option>
+                <option th:value="quantity" th:selected="${sort == 'quantity'}">По количеству</option>
+            </select>
+            <input type="hidden" name="keyword" th:value="${keyword}">
+        </form>
     </div>
 
-    <!-- Сетка карточек -->
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         <div class="col" th:each="pharmacy : ${pharmacyPage.all}">
             <div class="card h-100 shadow-sm">
-                <img th:if="${pharmacy.image != null}" th:src="@{${pharmacy.image}}" class="img-thumbnail" alt="Фото лекарства">
+                <img th:if="${pharmacy.image != null}" th:src="@{${pharmacy.image}}" class="card-img-fixed"
+                     alt="Фото лекарства">
                 <div class="card-body">
                     <p class="text-success small fw-semibold">Есть в аптечке</p>
                     <h6 class="fw-bold">
@@ -42,49 +42,43 @@
         </div>
     </div>
 
-    <!-- Пагинация -->
     <nav th:if="${pharmacyPage.all != null and pharmacyPage.all.totalPages > 1}" aria-label="Page navigation">
         <ul class="pagination justify-content-center mt-4">
 
-            <!-- Кнопка "назад" -->
             <li th:classappend="${pharmacyPage.all.first} ? 'disabled'">
                 <a class="page-link"
-                   th:href="@{/pharmacies(page=${pharmacyPage.all.number - 1}, size=${pharmacyPage.all.size})}">‹</a>
+                   th:href="@{/pharmacies(page=${pharmacyPage.all.number - 1}, size=${pharmacyPage.all.size}, keyword=${keyword}, sort=${sort})}">‹</a>
             </li>
 
-            <!-- Всегда первая страница -->
             <li th:if="${pharmacyPage.all.number > 2}">
-                <a class="page-link" th:href="@{/pharmacies(page=0, size=${pharmacyPage.all.size})}">1</a>
+                <a class="page-link"
+                   th:href="@{/pharmacies(page=0, size=${pharmacyPage.all.size}, keyword=${keyword}, sort=${sort})}">1</a>
             </li>
             <li th:if="${pharmacyPage.all.number > 3}">
                 <span class="page-link">...</span>
             </li>
 
-            <!-- Страницы вокруг текущей -->
             <li th:each="i : ${#numbers.sequence(pharmacyPage.all.number-2 > 0 ? pharmacyPage.all.number-2 : 0,
                                              pharmacyPage.all.number+2 < pharmacyPage.all.totalPages-1 ? pharmacyPage.all.number+2 : pharmacyPage.all.totalPages-1)}"
                 th:classappend="${i == pharmacyPage.all.number} ? 'active'">
                 <a class="page-link"
-                   th:href="@{/pharmacies(page=${i}, size=${pharmacyPage.all.size})}"
+                   th:href="@{/pharmacies(page=${i}, size=${pharmacyPage.all.size}, keyword=${keyword}, sort=${sort})}"
                    th:text="${i+1}"></a>
             </li>
 
-            <!-- Троеточие перед последней страницей -->
             <li th:if="${pharmacyPage.all.number < pharmacyPage.all.totalPages-4}">
                 <span class="page-link">...</span>
             </li>
 
-            <!-- Последняя страница -->
             <li th:if="${pharmacyPage.all.number < pharmacyPage.all.totalPages-3}">
                 <a class="page-link"
-                   th:href="@{/pharmacies(page=${pharmacyPage.all.totalPages-1}, size=${pharmacyPage.all.size})}"
+                   th:href="@{/pharmacies(page=${pharmacyPage.all.totalPages-1}, size=${pharmacyPage.all.size}, keyword=${keyword}, sort=${sort})}"
                    th:text="${pharmacyPage.all.totalPages}"></a>
             </li>
 
-            <!-- Кнопка "вперёд" -->
             <li th:classappend="${pharmacyPage.all.last} ? 'disabled'">
                 <a class="page-link"
-                   th:href="@{/pharmacies(page=${pharmacyPage.all.number + 1}, size=${pharmacyPage.all.size})}">›</a>
+                   th:href="@{/pharmacies(page=${pharmacyPage.all.number + 1}, size=${pharmacyPage.all.size}, keyword=${keyword}, sort=${sort})}">›</a>
             </li>
 
         </ul>
@@ -95,13 +89,14 @@
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         <div class="col" th:each="recently : ${pharmacyPage.recentlyBought}">
             <div class="card h-100 shadow-sm">
-                <img th:if="${recently.medicationId != null}"
+                <img th:if="${recently.image != null}"
                      th:src="${recently.image}"
-                     class="card-img-top" alt="лекарство">
+                     class="card-img-fixed"
+                     alt="лекарство">
                 <div class="card-body">
                     <p class="text-success small fw-semibold">Есть в аптечке</p>
                     <h6 class="fw-bold">
-                        <a th:href="@{/pharmacies/detail/{id}(id=${recently.medicationId})}"
+                        <a th:href="@{/pharmacies/detail/{id}(id=${recently.id})}"
                            th:text="${recently.medication.name}"
                            class="text-decoration-none text-dark"></a>
                     </h6>
@@ -120,13 +115,13 @@
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         <div class="col" th:each="expiring : ${pharmacyPage.expiringSoon}">
             <div class="card h-100 shadow-sm">
-                <img th:if="${expiring.medicationId != null}"
+                <img th:if="${expiring.image != null}"
                      th:src="${expiring.image}"
-                     class="card-img-top" alt="лекарство">
+                     class="card-img-fixed" alt="лекарство">
                 <div class="card-body">
                     <p class="text-success small fw-semibold">Есть в аптечке</p>
                     <h6 class="fw-bold">
-                        <a th:href="@{/pharmacies/detail/{id}(id=${expiring.medicationId})}"
+                        <a th:href="@{/pharmacies/detail/{id}(id=${expiring.id})}"
                            th:text="${expiring.medication.name}"
                            class="text-decoration-none text-dark"></a>
                     </h6>
@@ -141,7 +136,6 @@
     </div>
 </div>
 
-<!-- 🔹 Футер -->
 <div th:replace="fragments/footer :: footer"></div>
 
 </body>

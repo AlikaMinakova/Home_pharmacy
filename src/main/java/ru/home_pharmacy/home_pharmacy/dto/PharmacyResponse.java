@@ -1,8 +1,9 @@
-// PharmacyResponse.java
 package ru.home_pharmacy.home_pharmacy.dto;
 
-import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 
 import java.time.LocalDate;

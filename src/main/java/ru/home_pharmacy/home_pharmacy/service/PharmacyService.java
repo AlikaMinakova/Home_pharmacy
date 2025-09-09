@@ -10,11 +10,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import ru.home_pharmacy.home_pharmacy.dto.*;
+import ru.home_pharmacy.home_pharmacy.dto.PharmacyOverviewResponse;
+import ru.home_pharmacy.home_pharmacy.dto.PharmacyRequest;
+import ru.home_pharmacy.home_pharmacy.dto.PharmacyResponse;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.entity.Pharmacy;
-import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PharmacyRepository;
@@ -48,7 +49,6 @@ public class PharmacyService {
     }
 
 
-
     @Transactional(readOnly = true)
     public Page<PharmacyResponse> getAllMedications(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("purchaseDate").ascending());
@@ -57,13 +57,21 @@ public class PharmacyService {
     }
 
     @Transactional(readOnly = true)
-    public PharmacyOverviewResponse getPharmacyOverview(int page, int size) {
+    public PharmacyOverviewResponse getPharmacyOverview(int page, int size, String keyword, String sort) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort).ascending());
+
+        Page<PharmacyResponse> all;
+        if (keyword != null && !keyword.isBlank()) {
+            all = pharmacyRepository.findByMedicationNameContainingIgnoreCase(keyword, pageable)
+                    .map(this::toResponse);
+        } else {
+            all = pharmacyRepository.findAll(pageable)
+                    .map(this::toResponse);
+        }
+
         LocalDate today = LocalDate.now();
 
-        // 1. Весь список
-        Page<PharmacyResponse> all = getAllMedications(page, size);
-
-        // 2. Купили на этой неделе
+        // Купили на этой неделе
         LocalDate weekAgo = today.minusDays(7);
         List<PharmacyResponse> recentlyBought = pharmacyRepository.findBoughtAfter(weekAgo)
                 .stream()
@@ -71,7 +79,7 @@ public class PharmacyService {
                 .limit(4)
                 .toList();
 
-        // 3. Истекает срок годности (до 7 дней)
+        // Истекает срок годности
         LocalDate nextWeek = today.plusDays(7);
         List<PharmacyResponse> expiringSoon = pharmacyRepository.findExpiringSoon(nextWeek)
                 .stream()
@@ -88,7 +96,6 @@ public class PharmacyService {
 
     @Transactional
     public PharmacyResponse create(PharmacyRequest request) {
-        // создаём новое лекарство
         Medication medication = new Medication();
         fillMedicationFromRequest(medication, request);
 
@@ -121,12 +128,13 @@ public class PharmacyService {
         medication.setName(request.getMedication().getName());
         medication.setDescription(request.getMedicationDescription());
 
-        // загружаем картинку (если есть)
         if (request.getImage() != null && !request.getImage().isEmpty()) {
             medication.setImage(uploadImage(request.getImage()));
         }
+        else {
+            medication.setImage("/no-photo.jpg");
+        }
 
-        // находим болезни по id
         Set<Disease> diseases = new HashSet<>(diseaseRepository.findAllById(
                 request.getMedication()
                         .getDiseases()
@@ -175,7 +183,6 @@ public class PharmacyService {
         medicationRepository.deleteById(id);
     }
 
-    // 🔹 Конвертер в DTO
     private PharmacyResponse toResponse(Pharmacy pharmacy) {
         return PharmacyResponse.builder()
                 .id(pharmacy.getId())

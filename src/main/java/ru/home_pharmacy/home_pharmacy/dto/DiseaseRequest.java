@@ -2,11 +2,13 @@ package ru.home_pharmacy.home_pharmacy.dto;
 
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -19,5 +21,5 @@ public class DiseaseRequest {
     @NotBlank
     private String description;
     @Builder.Default
-    private List<Long> symptomIds  = new ArrayList<>();
+    private List<Long> symptomIds = new ArrayList<>();
 }

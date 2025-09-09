@@ -9,18 +9,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseResponse;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomRequest;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomResponse;
-import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Symptom;
-import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.SymptomRepository;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,7 +40,6 @@ public class SymptomService {
                 ));
     }
 
-    // CREATE
     @Transactional
     public SymptomResponse createSymptom(SymptomRequest request) {
         Symptom symptom = Symptom.builder()
@@ -80,7 +73,7 @@ public class SymptomService {
     @Transactional
     public void deleteSymptom(Long id) {
         if (!symptomRepository.existsById(id)) {
-            throw new RuntimeException("Disease not found with id = " + id);
+            throw new RuntimeException("Symptom not found with id = " + id);
         }
         symptomRepository.deleteById(id);
     }

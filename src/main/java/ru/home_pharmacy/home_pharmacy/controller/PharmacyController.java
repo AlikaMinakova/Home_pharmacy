@@ -1,24 +1,15 @@
 package ru.home_pharmacy.home_pharmacy.controller;
 
-import jakarta.persistence.EntityNotFoundException;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseResponse;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyRequest;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyResponse;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
-import ru.home_pharmacy.home_pharmacy.entity.Pharmacy;
 import ru.home_pharmacy.home_pharmacy.service.DiseaseService;
 import ru.home_pharmacy.home_pharmacy.service.PharmacyService;
-
-import jakarta.validation.Valid;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/pharmacies")
@@ -31,9 +22,13 @@ public class PharmacyController {
     // список лекарств
     @GetMapping
     public String listMedications(@RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "5") int size,
+                                  @RequestParam(defaultValue = "8") int size,
+                                  @RequestParam(required = false) String keyword,
+                                  @RequestParam(defaultValue = "expirationDate") String sort,
                                   Model model) {
-        model.addAttribute("pharmacyPage", pharmacyService.getPharmacyOverview(page, size));
+        model.addAttribute("pharmacyPage", pharmacyService.getPharmacyOverview(page, size, keyword, sort));
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("sort", sort);
         return "pharmacy/list";
     }
 
@@ -66,7 +61,7 @@ public class PharmacyController {
     }
 
 
-// форма редактирования лекарсва
+    // форма редактирования лекарсва
     @GetMapping("/{id}")
     public String showUpdateForm(@PathVariable Long id,
                                  Model model) {

@@ -1,8 +1,9 @@
 package ru.home_pharmacy.home_pharmacy.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 

@@ -31,7 +31,6 @@ public class DiseaseService {
     @Autowired
     private final SymptomRepository symptomRepository;
 
-    // CREATE
     @Transactional
     public DiseaseResponse createDisease(DiseaseRequest request) {
         Set<Symptom> symptoms = new HashSet<>();

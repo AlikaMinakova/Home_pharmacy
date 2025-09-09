@@ -6,11 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseResponse;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomRequest;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomResponse;
-import ru.home_pharmacy.home_pharmacy.service.DiseaseService;
 import ru.home_pharmacy.home_pharmacy.service.SymptomService;
 
 @Controller

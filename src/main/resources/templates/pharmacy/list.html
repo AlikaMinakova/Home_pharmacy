@@ -110,8 +110,17 @@
         </div>
     </div>
 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0 text-dark">
+            Закончился срок годности
+        </h3>
 
-    <h4 class="fw-bold mb-4">Заканчивается срок годности</h4>
+        <a th:href="@{/pharmacies/expired}" class="btn btn-save px-4">
+            Посмотреть все
+        </a>
+    </div>
+
+
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         <div class="col" th:each="expiring : ${pharmacyPage.expiringSoon}">
             <div class="card h-100 shadow-sm">

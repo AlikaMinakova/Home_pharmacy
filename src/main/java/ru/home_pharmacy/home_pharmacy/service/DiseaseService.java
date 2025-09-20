@@ -112,4 +112,8 @@ public class DiseaseService {
                 )
                 .build();
     }
+
+    public Page<Disease> findBySymptomId(Long id, Pageable pageable) {
+
+        return diseaseRepository.findBySymptomId(id, pageable);}
 }

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <h3 class="fw-bold mb-4">От <span th:text="${disease.name}"></span> есть <span th:text="${size}"></span> лекарств</h3>
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+        <div class="col" th:each="med : ${medicationsPage.content}">
+            <div class="card h-100 shadow-sm">
+                <img th:if="${med.image != null}" th:src="@{${med.image}}" class="card-img-fixed"
+                     alt="Фото лекарства">
+                <div class="card-body">
+                    <h6 class="fw-bold" th:text="${med.name}"></h6>
+                    <p class="small text-muted" th:text="${med.description}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Пагинация -->
+    <nav th:if="${medicationsPage.totalPages > 1}" aria-label="Page navigation">
+        <ul class="pagination justify-content-center mt-4">
+
+            <li th:classappend="${medicationsPage.first} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/diseases/{id}/medications(id=${disease.id}, page=${medicationsPage.number - 1}, size=${medicationsPage.size})}">‹</a>
+            </li>
+
+            <li th:each="i : ${#numbers.sequence(0, medicationsPage.totalPages - 1)}"
+                th:classappend="${i == medicationsPage.number} ? 'active'">
+                <a class="page-link" th:text="${i + 1}"
+                   th:href="@{/diseases/{id}/medications(id=${disease.id}, page=${i}, size=${medicationsPage.size})}"></a>
+            </li>
+
+            <li th:classappend="${medicationsPage.last} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/diseases/{id}/medications(id=${disease.id}, page=${medicationsPage.number + 1}, size=${medicationsPage.size})}">›</a>
+            </li>
+        </ul>
+    </nav>
+
+    <a th:href="@{/diseases}" class="btn btn-save mt-4">← Назад к болезням</a>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

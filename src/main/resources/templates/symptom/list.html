@@ -23,6 +23,9 @@
             <form th:action="@{/symptoms/{id}/delete(id=${symptom.id})}" method="post" class="d-inline">
                 <button type="submit" class="btn btn-delete px-4">Удалить</button>
             </form>
+
+            <a th:href="@{/diseases/{id}/diseases(id=${symptom.id})}"
+               class="btn btn-save px-4">Болезни</a>
         </div>
     </div>
 

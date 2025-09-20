@@ -51,7 +51,7 @@ public class PharmacyService {
 
     @Transactional(readOnly = true)
     public Page<PharmacyResponse> getAllMedications(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("purchaseDate").ascending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("purchaseDate").descending());
         return pharmacyRepository.findAll(pageable)
                 .map(this::toResponse);
     }
@@ -79,9 +79,7 @@ public class PharmacyService {
                 .limit(4)
                 .toList();
 
-        // Истекает срок годности
-        LocalDate nextWeek = today.plusDays(7);
-        List<PharmacyResponse> expiringSoon = pharmacyRepository.findExpiringSoon(nextWeek)
+        List<PharmacyResponse> expiringSoon = pharmacyRepository.findExpiringSoon(LocalDate.now())
                 .stream()
                 .map(this::toResponse)
                 .limit(4)
@@ -92,6 +90,13 @@ public class PharmacyService {
                 .recentlyBought(recentlyBought)
                 .expiringSoon(expiringSoon)
                 .build();
+    }
+
+    @Transactional
+    public Page<PharmacyResponse> getExpiredPharmacies(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("expirationDate").ascending());
+        return pharmacyRepository.findExpired(LocalDate.now(), pageable)
+                .map(this::toResponse); // Page<T>.map() позволяет преобразовать сущности в DTO
     }
 
     @Transactional
@@ -173,13 +178,27 @@ public class PharmacyService {
         }
     }
 
+    public Page<Medication> findByDiseaseId(Long diseaseId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return medicationRepository.findByDiseaseId(diseaseId, pageable);
+    }
+
+    public Disease findDiseaseById(Long diseaseId) {
+        return diseaseRepository.findById(diseaseId)
+                .orElseThrow(() -> new RuntimeException("Disease not found: " + diseaseId));
+    }
+
+    @Transactional
+    public void deleteAllExpired() {
+        pharmacyRepository.deleteAllExpired(LocalDate.now());
+    }
+
 
     @Transactional
     public void deleteMedication(Long id) {
         if (!medicationRepository.existsById(id)) {
             throw new RuntimeException("Medication not found with id = " + id);
         }
-        System.out.println(id);
         medicationRepository.deleteById(id);
     }
 

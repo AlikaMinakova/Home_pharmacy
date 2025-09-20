@@ -4,10 +4,15 @@ package ru.home_pharmacy.home_pharmacy.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
 import ru.home_pharmacy.home_pharmacy.dto.DiseaseResponse;
+import ru.home_pharmacy.home_pharmacy.dto.SymptomResponse;
+import ru.home_pharmacy.home_pharmacy.entity.Disease;
+import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.service.DiseaseService;
 import org.springframework.ui.Model;
 import ru.home_pharmacy.home_pharmacy.service.SymptomService;
@@ -31,6 +36,23 @@ public class DiseaseController {
         Page<DiseaseResponse> diseasesPage = diseaseService.getAllDiseases(page, size);
         model.addAttribute("diseasesPage", diseasesPage);
         return "disease/list";
+    }
+
+    @GetMapping("/{id}/diseases")
+    public String diseasesBySymptom(@PathVariable Long id,
+                                    @RequestParam(defaultValue = "0") int page,
+                                    @RequestParam(defaultValue = "10") int size,
+                                    Model model) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Disease> diseasesPage = diseaseService.findBySymptomId(id, pageable);
+
+        SymptomResponse symptom = symptomService.getSymptom(id);
+
+        model.addAttribute("diseasesPage", diseasesPage);
+        model.addAttribute("symptom", symptom);
+        model.addAttribute("size", diseasesPage.getTotalElements());
+
+        return "disease/listBySymptom";
     }
 
     // форма добавления болезни

@@ -1,8 +1,10 @@
 package ru.home_pharmacy.home_pharmacy.repository;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.home_pharmacy.home_pharmacy.entity.Pharmacy;
@@ -20,4 +22,12 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
 
     @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate <= :endDate")
     List<Pharmacy> findExpiringSoon(@Param("endDate") LocalDate endDate);
+
+    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate <= :now")
+    Page<Pharmacy> findExpired(@Param("now") LocalDate now, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Pharmacy p WHERE p.expirationDate <= :today")
+    void deleteAllExpired(@Param("today") LocalDate today);
 }

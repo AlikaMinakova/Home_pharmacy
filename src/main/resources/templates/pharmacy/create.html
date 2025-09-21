@@ -14,26 +14,31 @@
         <div class="mb-3">
             <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
             <input type="text" class="form-control" th:field="*{medication.name}" required>
+            <div class="text-danger" th:if="${#fields.hasErrors('medication.name')}" th:errors="*{medication.name}"></div>
         </div>
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Описание <span class="text-danger">*</span></label>
-            <textarea class="form-control" rows="3" th:field="*{medicationDescription}" required></textarea>
+            <textarea class="form-control" rows="3" th:field="*{medication.description}" required></textarea>
+            <div class="text-danger" th:if="${#fields.hasErrors('medication.description')}" th:errors="*{medication.description}"></div>
         </div>
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Количество, шт <span class="text-danger">*</span></label>
             <input type="number" class="form-control" th:field="*{quantity}" required>
+            <div class="text-danger" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold">Дата покупки</label>
-            <input type="date" class="form-control" th:field="*{purchaseDate}">
+            <label class="form-label fw-semibold">Дата покупки<span class="text-danger">*</span></label>
+            <input type="date" class="form-control" th:field="*{purchaseDate}" required>
+            <div class="text-danger" th:if="${#fields.hasErrors('purchaseDate')}" th:errors="*{purchaseDate}"></div>
         </div>
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Срок годности до <span class="text-danger">*</span></label>
             <input type="date" class="form-control" th:field="*{expirationDate}" required>
+            <div class="text-danger" th:if="${#fields.hasErrors('expirationDate')}" th:errors="*{expirationDate}"></div>
         </div>
 
         <div class="mb-4">

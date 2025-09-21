@@ -1,12 +1,15 @@
 package ru.home_pharmacy.home_pharmacy.controller;
 
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
 import ru.home_pharmacy.home_pharmacy.dto.DiseaseResponse;
@@ -64,11 +67,32 @@ public class DiseaseController {
     }
 
     // сохранение формы болезни
-    @PostMapping()
-    public String createDisease(@ModelAttribute("disease") DiseaseRequest diseaseRequest) {
-        diseaseService.createDisease(diseaseRequest);
+    @PostMapping
+    public String createDisease(@Valid @ModelAttribute("disease") DiseaseRequest diseaseRequest,
+                                BindingResult bindingResult,
+                                Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("symptoms", symptomService.getAllSymptoms());
+            return "disease/create";
+        }
+
+        try {
+            diseaseService.createDisease(diseaseRequest);
+        } catch (DataIntegrityViolationException e) {
+            bindingResult.rejectValue("name", "error.disease", "Болезнь с таким названием уже существует");
+            model.addAttribute("symptoms", symptomService.getAllSymptoms());
+            return "disease/create";
+        }
+
         return "redirect:/diseases";
     }
+
+    // сохранение формы болезни
+//    @PostMapping()
+//    public String createDisease(@ModelAttribute("disease") DiseaseRequest diseaseRequest) {
+//        diseaseService.createDisease(diseaseRequest);
+//        return "redirect:/diseases";
+//    }
 
     // форма редактирования и просмотра болезни
     @GetMapping("/{id}/edit")
@@ -81,8 +105,25 @@ public class DiseaseController {
     // обновление формы редактирования болезни
     @PostMapping("/{id}")
     public String updateDisease(@PathVariable Long id,
-                                @ModelAttribute DiseaseRequest diseaseRequest) {
-        diseaseService.updateDisease(id, diseaseRequest);
+                                @Valid @ModelAttribute("disease") DiseaseRequest diseaseRequest,
+                                BindingResult bindingResult,
+                                Model model) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("symptoms", symptomService.getAllSymptoms());
+            model.addAttribute("disease", diseaseRequest);
+            return "disease/update";
+        }
+
+        try {
+            diseaseService.updateDisease(id, diseaseRequest);
+        } catch (DataIntegrityViolationException e) {
+            bindingResult.rejectValue("name", "error.disease", "Болезнь с таким названием уже существует");
+            model.addAttribute("symptoms", symptomService.getAllSymptoms());
+            model.addAttribute("disease", diseaseRequest);
+            return "disease/update";
+        }
+
         return "redirect:/diseases";
     }
 

@@ -21,12 +21,14 @@
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" th:field="*{name}" required>
+            <input type="text" class="form-control" th:field="*{name}">
+            <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
         </div>
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Описание <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" th:field="*{description}" required>
+            <input type="text" class="form-control" th:field="*{description}">
+            <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
         </div>
 
         <div class="mb-4">
@@ -47,6 +49,7 @@
                 </tr>
                 </tbody>
             </table>
+            <div class="text-danger" th:if="${#fields.hasErrors('symptomIds')}" th:errors="*{symptomIds}"></div>
         </div>
 
         <button type="submit" class="btn btn-save px-4">Обновить</button>

@@ -21,6 +21,5 @@ public class DiseaseResponse {
     private String name;
     @NotBlank
     private String description;
-    @NotNull
     private List<Long> symptomIds;
 }

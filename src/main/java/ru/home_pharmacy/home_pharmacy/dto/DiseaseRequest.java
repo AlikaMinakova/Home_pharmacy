@@ -2,6 +2,7 @@ package ru.home_pharmacy.home_pharmacy.dto;
 
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,12 +18,12 @@ import java.util.List;
 @Builder
 public class DiseaseRequest {
     private Long id;
-    @NotBlank(message = "Название обязательно")
+    @NotBlank
     private String name;
-
-    @NotBlank(message = "Описание обязательно")
+    @NotBlank
     private String description;
     @Builder.Default
+    @NotNull(message = "Выберите хотя бы один симптом")
     @Size(min = 1, message = "Выберите хотя бы один симптом")
     private List<Long> symptomIds = new ArrayList<>();
 }

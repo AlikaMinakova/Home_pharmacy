@@ -1,11 +1,15 @@
 package ru.home_pharmacy.home_pharmacy.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomRequest;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomResponse;
 import ru.home_pharmacy.home_pharmacy.service.SymptomService;
@@ -36,10 +40,21 @@ public class SymptomController {
 
     // сохранение формы симптома
     @PostMapping()
-    public String createSymptom(@ModelAttribute("symptom") SymptomRequest symptomRequest) {
-        symptomService.createSymptom(symptomRequest);
+    public String createSymptom(@Valid @ModelAttribute("symptom") SymptomRequest symptomRequest, BindingResult bindingResult,
+                                Model model) {
+        if (bindingResult.hasErrors()) {
+            return "symptom/create";
+        }
+        try {
+            symptomService.createSymptom(symptomRequest);
+        } catch (
+                DataIntegrityViolationException e) {
+            bindingResult.rejectValue("name", "error.symptom", "Симптом с таким названием уже существует");
+            return "symptom/create";
+        }
         return "redirect:/symptoms";
     }
+
 
     // форма редактирования и просмотра симптомов
     @GetMapping("/{id}/edit")
@@ -51,8 +66,20 @@ public class SymptomController {
     // обновление формы редактирования симптомов
     @PostMapping("/{id}")
     public String updateSymptom(@PathVariable Long id,
-                                @ModelAttribute SymptomRequest symptomRequest) {
-        symptomService.updateSymptom(id, symptomRequest);
+                                @Valid @ModelAttribute("symptom") SymptomRequest symptomRequest,
+                                BindingResult bindingResult,
+                                Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("symptom", symptomRequest);
+            return "symptom/update";
+        }
+        try {
+            symptomService.updateSymptom(id, symptomRequest);
+        } catch (DataIntegrityViolationException e) {
+            bindingResult.rejectValue("name", "error.symptom", "Симптом с таким названием уже существует");
+            model.addAttribute("symptom", symptomRequest);
+            return "symptom/update";
+        }
         return "redirect:/symptoms";
     }
 

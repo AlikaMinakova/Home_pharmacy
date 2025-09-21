@@ -1,11 +1,15 @@
 package ru.home_pharmacy.home_pharmacy.controller;
 
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyRequest;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyResponse;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
@@ -51,15 +55,15 @@ public class PharmacyController {
                                            @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "6") int size,
                                            Model model) {
-            Page<Medication> medications = pharmacyService.findByDiseaseId(id, page, size);
-            Disease disease = pharmacyService.findDiseaseById(id);
+        Page<Medication> medications = pharmacyService.findByDiseaseId(id, page, size);
+        Disease disease = pharmacyService.findDiseaseById(id);
 
-            model.addAttribute("disease", disease);
-            model.addAttribute("medicationsPage", medications);
-            model.addAttribute("size", medications.getSize());
+        model.addAttribute("disease", disease);
+        model.addAttribute("medicationsPage", medications);
+        model.addAttribute("size", medications.getSize());
 
-            return "pharmacy/listByDisease";
-        }
+        return "pharmacy/listByDisease";
+    }
 
 
     // страниуца просмотра
@@ -83,13 +87,20 @@ public class PharmacyController {
         return "pharmacy/create";
     }
 
-    // сохранение формы лекарства
     @PostMapping()
-    public String createMedication(@ModelAttribute("pharmacy") PharmacyRequest pharmacyRequest) {
+    public String createMedication(
+            @Valid @ModelAttribute("pharmacy") PharmacyRequest pharmacyRequest,
+            BindingResult bindingResult,
+            Model model) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("diseases", diseaseService.getAll());
+            return "pharmacy/create";
+        }
+
         pharmacyService.create(pharmacyRequest);
         return "redirect:/pharmacies";
     }
-
 
     // форма редактирования лекарсва
     @GetMapping("/{id}")
@@ -97,9 +108,6 @@ public class PharmacyController {
                                  Model model) {
         PharmacyResponse p = pharmacyService.getById(id);
         model.addAttribute("pharmacy", pharmacyService.getById(id));
-        System.out.println(p.getExpirationDate());
-        System.out.println(p.getPurchaseDate());
-
         model.addAttribute("diseases", diseaseService.getAll());
         return "pharmacy/update";
     }
@@ -107,7 +115,14 @@ public class PharmacyController {
     // сохранение формы редоктирования лекарства
     @PostMapping("/{id}")
     public String updateMedication(@PathVariable Long id,
-                                   @ModelAttribute("pharmacy") PharmacyRequest pharmacyRequest) {
+                                   @Valid @ModelAttribute("pharmacy") PharmacyRequest pharmacyRequest,
+                                   BindingResult bindingResult,
+                                   Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("pharmacy", pharmacyRequest);
+            model.addAttribute("diseases", diseaseService.getAll());
+            return "pharmacy/update";
+        }
         pharmacyService.update(id, pharmacyRequest);
         return "redirect:/pharmacies";
     }

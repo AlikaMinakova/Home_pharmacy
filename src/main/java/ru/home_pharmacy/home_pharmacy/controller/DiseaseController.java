@@ -87,13 +87,6 @@ public class DiseaseController {
         return "redirect:/diseases";
     }
 
-    // сохранение формы болезни
-//    @PostMapping()
-//    public String createDisease(@ModelAttribute("disease") DiseaseRequest diseaseRequest) {
-//        diseaseService.createDisease(diseaseRequest);
-//        return "redirect:/diseases";
-//    }
-
     // форма редактирования и просмотра болезни
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {

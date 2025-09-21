@@ -1,6 +1,9 @@
 package ru.home_pharmacy.home_pharmacy.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.HashSet;
@@ -18,6 +21,7 @@ public class Medication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Название обязательно")
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
@@ -30,6 +34,8 @@ public class Medication {
     @OneToMany(mappedBy = "medication", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Pharmacy> pharmacies = new HashSet<>();
 
+    @NotNull(message = "Выберите хотя бы одну болезнь")
+    @Size(min = 1, message = "Выберите хотя бы одну болезнь")
     @ManyToMany
     @JoinTable(
             name = "medication_disease",

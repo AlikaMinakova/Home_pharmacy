@@ -20,8 +20,8 @@
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         <div class="col" th:each="recently : ${pharmacyPage}">
             <div class="card h-100 shadow-sm">
-                <img th:if="${recently.image != null}"
-                     th:src="${recently.image}"
+                <img th:if="${recently.medication.image != null}"
+                     th:src="${recently.medication.image}"
                      class="card-img-fixed"
                      alt="лекарство">
                 <div class="card-body">

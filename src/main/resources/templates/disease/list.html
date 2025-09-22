@@ -21,7 +21,7 @@
             <form th:action="@{/diseases/{id}/delete(id=${disease.id})}" method="post" class="d-inline">
                 <button type="submit" class="btn btn-delete px-4">Удалить</button>
             </form>
-            <a th:href="@{/pharmacies/{id}/medications(id=${disease.id})}"
+            <a th:href="@{/medication/{id}/disease(id=${disease.id})}"
                class="btn btn-leak px-4">Чем лечить</a>
         </div>
     </div>

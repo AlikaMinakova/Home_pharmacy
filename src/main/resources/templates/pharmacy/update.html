@@ -6,21 +6,21 @@
 <div th:replace="fragments/header :: body"></div>
 
 
-<div class="container my-5">
-    <h3 class="fw-bold mb-4">Добавить лекарство</h3>
+<div class="container my-5 content">
+    <h3 class="fw-bold mb-4">Обновить лекарство</h3>
 
     <form th:action="@{/pharmacies/{id}(id=${pharmacy.id})}"
           th:object="${pharmacy}" method="post" enctype="multipart/form-data" class="w-75">
         <div class="mb-3">
-            <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" th:field="*{medication.name}">
-            <div class="text-danger" th:if="${#fields.hasErrors('medication.name')}" th:errors="*{medication.name}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label fw-semibold">Описание </label>
-            <textarea class="form-control" rows="3" th:field="*{medication.description}"></textarea>
-            <div class="text-danger" th:if="${#fields.hasErrors('medication.description')}" th:errors="*{medication.description}"></div>
+            <label class="form-label">Лекарство <span class="text-danger">*</span></label>
+            <select name="medicationId" class="form-control" required>
+                <option value="" disabled selected>Выберите лекарство</option>
+                <option th:each="m : ${medications}"
+                        th:value="${m.id}"
+                        th:text="${m.name}"
+                        th:selected="${pharmacy.medication.id != null and pharmacy.medication.id == m.id}"></option>
+            </select>
+            <div class="text-danger" th:if="${#fields.hasErrors('medication')}" th:errors="*{medication}"></div>
         </div>
 
         <div class="mb-3">
@@ -41,65 +41,6 @@
             <input type="date" class="form-control" th:field="*{expirationDate}">
             <div class="text-danger" th:if="${#fields.hasErrors('expirationDate')}" th:errors="*{expirationDate}"></div>
         </div>
-
-        <div class="mb-4">
-            <label class="form-label fw-semibold">Фото</label>
-
-            <div class="mb-2">
-                <img id="currentImage"
-                     th:if="*{image != null}"
-                     th:src="*{image}"
-                     alt="Фото лекарства"
-                     class="img-thumbnail"
-                     style="max-width: 200px; max-height: 200px;">
-            </div>
-
-            <input class="form-control" type="file" th:field="*{image}" id="imageInput">
-        </div>
-
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const input = document.getElementById("imageInput");
-                const currentImage = document.getElementById("currentImage");
-
-                input.addEventListener("change", () => {
-                    const file = input.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = e => {
-                            currentImage.src = e.target.result;
-                            currentImage.style.display = "block";
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            });
-        </script>
-
-
-        <div class="mb-4">
-            <label class="form-label fw-semibold">Болезни</label>
-            <table class="table table-bordered table-hover">
-                <thead class="table-light">
-                <tr>
-                    <th style="width: 50px;">Выбрать</th>
-                    <th>Название</th>
-                    <th>Описание</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="disease : ${diseases}">
-                    <td class="text-center">
-                        <input type="checkbox" th:value="${disease.id}" th:field="*{medication.diseases}">
-                    </td>
-                    <td th:text="${disease.name}"></td>
-                    <td th:text="${disease.description}"></td>
-                </tr>
-                </tbody>
-            </table>
-            <div class="text-danger" th:if="${#fields.hasErrors('medication.diseases')}" th:errors="*{medication.diseases}"></div>
-        </div>
-
         <button type="submit" class="btn btn-save px-4">Обновить</button>
         <a th:href="@{/pharmacies}" class="btn btn-cancel px-4">Отмена</a>
     </form>

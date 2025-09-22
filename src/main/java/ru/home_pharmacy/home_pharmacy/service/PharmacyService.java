@@ -9,26 +9,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyOverviewResponse;
-import ru.home_pharmacy.home_pharmacy.dto.PharmacyRequest;
-import ru.home_pharmacy.home_pharmacy.dto.PharmacyResponse;
+import ru.home_pharmacy.home_pharmacy.dto.PharmacyDto;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.entity.Pharmacy;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
-import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PharmacyRepository;
 
-import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,12 +28,12 @@ import java.util.stream.Collectors;
 public class PharmacyService {
 
     private final PharmacyRepository pharmacyRepository;
-    private final MedicationRepository medicationRepository;
+    //    private final MedicationRepository medicationRepository;
     private final DiseaseRepository diseaseRepository;
 
 
     @Transactional(readOnly = true)
-    public PharmacyResponse getById(Long id) {
+    public PharmacyDto getById(Long id) {
         return pharmacyRepository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
@@ -50,7 +41,7 @@ public class PharmacyService {
 
 
     @Transactional(readOnly = true)
-    public Page<PharmacyResponse> getAllMedications(int page, int size) {
+    public Page<PharmacyDto> getAllMedications(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("purchaseDate").descending());
         return pharmacyRepository.findAll(pageable)
                 .map(this::toResponse);
@@ -60,7 +51,7 @@ public class PharmacyService {
     public PharmacyOverviewResponse getPharmacyOverview(int page, int size, String keyword, String sort) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort).ascending());
 
-        Page<PharmacyResponse> all;
+        Page<PharmacyDto> all;
         if (keyword != null && !keyword.isBlank()) {
             all = pharmacyRepository.findByMedicationNameContainingIgnoreCase(keyword, pageable)
                     .map(this::toResponse);
@@ -73,13 +64,13 @@ public class PharmacyService {
 
         // Купили на этой неделе
         LocalDate weekAgo = today.minusDays(7);
-        List<PharmacyResponse> recentlyBought = pharmacyRepository.findBoughtAfter(weekAgo)
+        List<PharmacyDto> recentlyBought = pharmacyRepository.findBoughtAfter(weekAgo)
                 .stream()
                 .map(this::toResponse)
                 .limit(4)
                 .toList();
 
-        List<PharmacyResponse> expiringSoon = pharmacyRepository.findExpiringSoon(LocalDate.now())
+        List<PharmacyDto> expiringSoon = pharmacyRepository.findExpiringSoon(LocalDate.now())
                 .stream()
                 .map(this::toResponse)
                 .limit(4)
@@ -93,94 +84,44 @@ public class PharmacyService {
     }
 
     @Transactional
-    public Page<PharmacyResponse> getExpiredPharmacies(int page, int size) {
+    public Page<PharmacyDto> getExpiredPharmacies(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("expirationDate").ascending());
         return pharmacyRepository.findExpired(LocalDate.now(), pageable)
                 .map(this::toResponse); // Page<T>.map() позволяет преобразовать сущности в DTO
     }
 
     @Transactional
-    public PharmacyResponse create(PharmacyRequest request) {
-        Medication medication = new Medication();
-        fillMedicationFromRequest(medication, request);
-
-        medication = medicationRepository.save(medication);
-
+    public PharmacyDto create(PharmacyDto request) {
         Pharmacy pharmacy = new Pharmacy();
-        fillPharmacyFromRequest(pharmacy, medication, request);
-
+        fillPharmacyFromRequest(pharmacy, request);
         Pharmacy saved = pharmacyRepository.save(pharmacy);
         return toResponse(saved);
     }
 
     @Transactional
-    public PharmacyResponse update(Long id, PharmacyRequest request) {
+    public PharmacyDto update(Long id, PharmacyDto request) {
         Pharmacy pharmacy = pharmacyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found with id: " + id));
 
-        Medication medication = pharmacy.getMedication();
-        fillMedicationFromRequest(medication, request);
-
-        medicationRepository.save(medication);
-
-        fillPharmacyFromRequest(pharmacy, medication, request);
+        fillPharmacyFromRequest(pharmacy, request);
 
         Pharmacy updated = pharmacyRepository.save(pharmacy);
         return toResponse(updated);
     }
 
-    private void fillMedicationFromRequest(Medication medication, PharmacyRequest request) {
-        medication.setName(request.getMedication().getName());
-        medication.setDescription(request.getMedicationDescription());
 
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            medication.setImage(uploadImage(request.getImage()));
-        }
-        else {
-            medication.setImage("/no-photo.jpg");
-        }
-
-        Set<Disease> diseases = new HashSet<>(diseaseRepository.findAllById(
-                request.getMedication()
-                        .getDiseases()
-                        .stream()
-                        .map(Disease::getId)
-                        .collect(Collectors.toSet())
-        ));
-        medication.setDiseases(diseases);
-    }
-
-    private void fillPharmacyFromRequest(Pharmacy pharmacy, Medication medication, PharmacyRequest request) {
-        pharmacy.setMedication(medication);
+    private void fillPharmacyFromRequest(Pharmacy pharmacy, PharmacyDto request) {
+        pharmacy.setMedication(Medication
+                .builder()
+                .id(request.getMedication().getId())
+                .name(request.getMedication().getName())
+                .description(request.getMedication().getDescription())
+                .image(request.getMedication().getImage())
+                .diseases(request.getMedication().getDiseases())
+                .build());
         pharmacy.setQuantity(request.getQuantity());
         pharmacy.setPurchaseDate(request.getPurchaseDate());
         pharmacy.setExpirationDate(request.getExpirationDate());
-    }
-
-    private String uploadImage(MultipartFile image) {
-        try {
-            String uploadDir = new File("uploads").getAbsolutePath();
-            File dir = new File(uploadDir);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-
-            String filename = LocalDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
-                    + "_" + Objects.requireNonNull(image.getOriginalFilename());
-
-            File uploadFile = new File(dir, filename);
-            image.transferTo(uploadFile);
-
-            return "/" + filename;
-        } catch (IOException e) {
-            throw new RuntimeException("Ошибка при сохранении файла", e);
-        }
-    }
-
-    public Page<Medication> findByDiseaseId(Long diseaseId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return medicationRepository.findByDiseaseId(diseaseId, pageable);
     }
 
     public Disease findDiseaseById(Long diseaseId) {
@@ -194,28 +135,24 @@ public class PharmacyService {
     }
 
 
-    @Transactional
-    public void deleteMedication(Long id) {
-        if (!medicationRepository.existsById(id)) {
-            throw new RuntimeException("Medication not found with id = " + id);
-        }
-        medicationRepository.deleteById(id);
-    }
-
-    private PharmacyResponse toResponse(Pharmacy pharmacy) {
-        return PharmacyResponse.builder()
+    private PharmacyDto toResponse(Pharmacy pharmacy) {
+        return PharmacyDto.builder()
                 .id(pharmacy.getId())
-                .medicationId(pharmacy.getMedication().getId())
-                .medication(pharmacy.getMedication())
-                .medicationDescription(pharmacy.getMedication().getDescription())
-                .diseaseNames(pharmacy.getMedication().getDiseases()
-                        .stream()
-                        .map(Disease::getName)
-                        .collect(Collectors.toList()))
+                .medication(MedicationDto
+                        .builder()
+                        .id(pharmacy.getMedication().getId())
+                        .name(pharmacy.getMedication().getName())
+                        .description(pharmacy.getMedication().getDescription())
+                        .image(pharmacy.getMedication().getImage())
+                        .diseases(pharmacy.getMedication().getDiseases())
+                        .build())
                 .quantity(pharmacy.getQuantity())
                 .expirationDate(pharmacy.getExpirationDate())
                 .purchaseDate(pharmacy.getPurchaseDate())
-                .image(pharmacy.getMedication().getImage())
                 .build();
+    }
+
+    public void delete(Long id) {
+        pharmacyRepository.deleteById(id);
     }
 }

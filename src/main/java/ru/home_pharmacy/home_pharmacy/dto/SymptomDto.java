@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SymptomRequest {
+public class SymptomDto {
     private Long id;
     @NotBlank
     private String name;

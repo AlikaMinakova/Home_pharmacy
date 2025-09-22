@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 
+import java.util.List;
+
 
 public interface MedicationRepository extends JpaRepository<Medication, Long> {
     @Query("SELECT m FROM Medication m JOIN m.diseases d WHERE d.id = :diseaseId")
-    Page<Medication> findByDiseaseId(@Param("diseaseId") Long diseaseId, Pageable pageable);
+    List<Medication> findByDiseaseId(@Param("diseaseId") Long diseaseId);
 }

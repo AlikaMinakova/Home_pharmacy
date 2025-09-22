@@ -21,7 +21,6 @@ public class Medication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Название обязательно")
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
@@ -34,8 +33,6 @@ public class Medication {
     @OneToMany(mappedBy = "medication", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Pharmacy> pharmacies = new HashSet<>();
 
-    @NotNull(message = "Выберите хотя бы одну болезнь")
-    @Size(min = 1, message = "Выберите хотя бы одну болезнь")
     @ManyToMany
     @JoinTable(
             name = "medication_disease",

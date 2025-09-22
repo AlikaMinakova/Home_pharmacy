@@ -9,8 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseResponse;
+import ru.home_pharmacy.home_pharmacy.dto.DiseaseDto;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
@@ -18,6 +17,7 @@ import ru.home_pharmacy.home_pharmacy.repository.SymptomRepository;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,7 +32,7 @@ public class DiseaseService {
     private final SymptomRepository symptomRepository;
 
     @Transactional
-    public DiseaseResponse createDisease(DiseaseRequest request) {
+    public DiseaseDto createDisease(DiseaseDto request) {
         Set<Symptom> symptoms = new HashSet<>();
         if (!request.getSymptomIds().isEmpty()) {
             symptoms = new HashSet<>(symptomRepository.findAllById(request.getSymptomIds()));
@@ -50,22 +50,22 @@ public class DiseaseService {
 
 
     @Transactional(readOnly = true)
-    public DiseaseResponse getDisease(Long id) {
+    public DiseaseDto getDisease(Long id) {
         Disease disease = diseaseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Disease not found with id = " + id));
         return mapToResponse(disease);
     }
 
-    public List<DiseaseResponse> getAll() {
+    public List<DiseaseDto> getAll() {
         return diseaseRepository.findAll().stream().map(this::mapToResponse).toList();
     }
 
 
     @Transactional(readOnly = true)
-    public Page<DiseaseResponse> getAllDiseases(int page, int size) {
+    public Page<DiseaseDto> getAllDiseases(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
         return diseaseRepository.findAll(pageable)
-                .map(disease -> new DiseaseResponse(
+                .map(disease -> new DiseaseDto(
                         disease.getId(),
                         disease.getName(),
                         disease.getDescription(),
@@ -74,7 +74,7 @@ public class DiseaseService {
     }
 
     @Transactional
-    public DiseaseResponse updateDisease(Long id, DiseaseRequest request) {
+    public DiseaseDto updateDisease(Long id, DiseaseDto request) {
         Disease disease = diseaseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Disease not found with id = " + id));
 
@@ -100,8 +100,8 @@ public class DiseaseService {
         diseaseRepository.deleteById(id);
     }
 
-    private DiseaseResponse mapToResponse(Disease disease) {
-        return DiseaseResponse.builder()
+    private DiseaseDto mapToResponse(Disease disease) {
+        return DiseaseDto.builder()
                 .id(disease.getId())
                 .name(disease.getName())
                 .description(disease.getDescription())
@@ -116,4 +116,8 @@ public class DiseaseService {
     public Page<Disease> findBySymptomId(Long id, Pageable pageable) {
 
         return diseaseRepository.findBySymptomId(id, pageable);}
+
+    public Optional<Disease> findById(Long id) {
+        return diseaseRepository.findById(id);
+    }
 }

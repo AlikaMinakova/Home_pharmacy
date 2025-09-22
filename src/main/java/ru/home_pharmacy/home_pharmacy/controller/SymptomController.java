@@ -9,9 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
-import ru.home_pharmacy.home_pharmacy.dto.SymptomRequest;
-import ru.home_pharmacy.home_pharmacy.dto.SymptomResponse;
+import ru.home_pharmacy.home_pharmacy.dto.SymptomDto;
 import ru.home_pharmacy.home_pharmacy.service.SymptomService;
 
 @Controller
@@ -26,7 +24,7 @@ public class SymptomController {
     public String listSymptoms(@RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "5") int size,
                                Model model) {
-        Page<SymptomResponse> symptomsPage = symptomService.getPaginateSymptoms(page, size);
+        Page<SymptomDto> symptomsPage = symptomService.getPaginateSymptoms(page, size);
         model.addAttribute("symptomsPage", symptomsPage);
         return "symptom/list";
     }
@@ -34,19 +32,19 @@ public class SymptomController {
     // форма добавления симптома
     @GetMapping("/new")
     public String showCreateForm(Model model) {
-        model.addAttribute("symptom", new SymptomRequest());
+        model.addAttribute("symptom", new SymptomDto());
         return "symptom/create";
     }
 
     // сохранение формы симптома
     @PostMapping()
-    public String createSymptom(@Valid @ModelAttribute("symptom") SymptomRequest symptomRequest, BindingResult bindingResult,
+    public String createSymptom(@Valid @ModelAttribute("symptom") SymptomDto symptomDto, BindingResult bindingResult,
                                 Model model) {
         if (bindingResult.hasErrors()) {
             return "symptom/create";
         }
         try {
-            symptomService.createSymptom(symptomRequest);
+            symptomService.createSymptom(symptomDto);
         } catch (
                 DataIntegrityViolationException e) {
             bindingResult.rejectValue("name", "error.symptom", "Симптом с таким названием уже существует");
@@ -66,18 +64,18 @@ public class SymptomController {
     // обновление формы редактирования симптомов
     @PostMapping("/{id}")
     public String updateSymptom(@PathVariable Long id,
-                                @Valid @ModelAttribute("symptom") SymptomRequest symptomRequest,
+                                @Valid @ModelAttribute("symptom") SymptomDto symptomDto,
                                 BindingResult bindingResult,
                                 Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("symptom", symptomRequest);
+            model.addAttribute("symptom", symptomDto);
             return "symptom/update";
         }
         try {
-            symptomService.updateSymptom(id, symptomRequest);
+            symptomService.updateSymptom(id, symptomDto);
         } catch (DataIntegrityViolationException e) {
             bindingResult.rejectValue("name", "error.symptom", "Симптом с таким названием уже существует");
-            model.addAttribute("symptom", symptomRequest);
+            model.addAttribute("symptom", symptomDto);
             return "symptom/update";
         }
         return "redirect:/symptoms";

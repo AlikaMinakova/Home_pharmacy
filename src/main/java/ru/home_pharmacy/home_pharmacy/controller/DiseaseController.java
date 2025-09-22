@@ -11,11 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseRequest;
-import ru.home_pharmacy.home_pharmacy.dto.DiseaseResponse;
-import ru.home_pharmacy.home_pharmacy.dto.SymptomResponse;
+import ru.home_pharmacy.home_pharmacy.dto.DiseaseDto;
+import ru.home_pharmacy.home_pharmacy.dto.SymptomDto;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
-import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.service.DiseaseService;
 import org.springframework.ui.Model;
 import ru.home_pharmacy.home_pharmacy.service.SymptomService;
@@ -36,7 +34,7 @@ public class DiseaseController {
     public String listDiseases(@RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "5") int size,
                                Model model) {
-        Page<DiseaseResponse> diseasesPage = diseaseService.getAllDiseases(page, size);
+        Page<DiseaseDto> diseasesPage = diseaseService.getAllDiseases(page, size);
         model.addAttribute("diseasesPage", diseasesPage);
         return "disease/list";
     }
@@ -49,7 +47,7 @@ public class DiseaseController {
         Pageable pageable = PageRequest.of(page, size);
         Page<Disease> diseasesPage = diseaseService.findBySymptomId(id, pageable);
 
-        SymptomResponse symptom = symptomService.getSymptom(id);
+        SymptomDto symptom = symptomService.getSymptom(id);
 
         model.addAttribute("diseasesPage", diseasesPage);
         model.addAttribute("symptom", symptom);
@@ -61,14 +59,14 @@ public class DiseaseController {
     // форма добавления болезни
     @GetMapping("/new")
     public String showCreateForm(Model model) {
-        model.addAttribute("disease", new DiseaseRequest());
+        model.addAttribute("disease", new DiseaseDto());
         model.addAttribute("symptoms", symptomService.getAllSymptoms());
         return "disease/create";
     }
 
     // сохранение формы болезни
     @PostMapping
-    public String createDisease(@Valid @ModelAttribute("disease") DiseaseRequest diseaseRequest,
+    public String createDisease(@Valid @ModelAttribute("disease") DiseaseDto diseaseDto,
                                 BindingResult bindingResult,
                                 Model model) {
         if (bindingResult.hasErrors()) {
@@ -77,7 +75,7 @@ public class DiseaseController {
         }
 
         try {
-            diseaseService.createDisease(diseaseRequest);
+            diseaseService.createDisease(diseaseDto);
         } catch (DataIntegrityViolationException e) {
             bindingResult.rejectValue("name", "error.disease", "Болезнь с таким названием уже существует");
             model.addAttribute("symptoms", symptomService.getAllSymptoms());
@@ -98,22 +96,22 @@ public class DiseaseController {
     // обновление формы редактирования болезни
     @PostMapping("/{id}")
     public String updateDisease(@PathVariable Long id,
-                                @Valid @ModelAttribute("disease") DiseaseRequest diseaseRequest,
+                                @Valid @ModelAttribute("disease") DiseaseDto diseaseDto,
                                 BindingResult bindingResult,
                                 Model model) {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("symptoms", symptomService.getAllSymptoms());
-            model.addAttribute("disease", diseaseRequest);
+            model.addAttribute("disease", diseaseDto);
             return "disease/update";
         }
 
         try {
-            diseaseService.updateDisease(id, diseaseRequest);
+            diseaseService.updateDisease(id, diseaseDto);
         } catch (DataIntegrityViolationException e) {
             bindingResult.rejectValue("name", "error.disease", "Болезнь с таким названием уже существует");
             model.addAttribute("symptoms", symptomService.getAllSymptoms());
-            model.addAttribute("disease", diseaseRequest);
+            model.addAttribute("disease", diseaseDto);
             return "disease/update";
         }
 

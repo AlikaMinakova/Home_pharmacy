@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+
+<div class="container my-5">
+    <h3 class="fw-bold mb-4">Обновить лекарство</h3>
+
+    <form th:action="@{/medication/{id}(id=${id})}"
+          th:object="${medication}" method="post" enctype="multipart/form-data" class="w-75">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" th:field="*{name}">
+            <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Описание </label>
+            <textarea class="form-control" rows="3" th:field="*{description}"></textarea>
+            <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Фото</label>
+
+            <!-- Текущее фото -->
+            <div class="mb-2" th:if="${medication.image != null}">
+                <img id="currentImage"
+                     th:src="${medication.image}"
+                     alt="Фото товара"
+                     class="img-thumbnail"
+                     style="max-width: 200px; max-height: 200px;">
+            </div>
+
+            <input class="form-control" type="file" id="imageInput" name="file">
+        </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const input = document.getElementById("imageInput");
+                const currentImage = document.getElementById("currentImage");
+
+                input.addEventListener("change", () => {
+                    const file = input.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            currentImage.src = e.target.result;
+                            currentImage.style.display = "block"
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            });
+        </script>
+
+
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Болезни</label>
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                <tr>
+                    <th style="width: 50px;">Выбрать</th>
+                    <th>Название</th>
+                    <th>Описание</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="disease : ${diseases}">
+                    <td class="text-center">
+                        <input type="checkbox" th:value="${disease.id}" th:field="*{diseases}">
+                    </td>
+                    <td th:text="${disease.name}"></td>
+                    <td th:text="${disease.description}"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="text-danger" th:if="${#fields.hasErrors('diseases')}" th:errors="*{diseases}"></div>
+        </div>
+
+        <button type="submit" class="btn btn-save px-4">Обновить</button>
+        <a th:href="@{/medication}" class="btn btn-cancel px-4">Отмена</a>
+    </form>
+</div>
+
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

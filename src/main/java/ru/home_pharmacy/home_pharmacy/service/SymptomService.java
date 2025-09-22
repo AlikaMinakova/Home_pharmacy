@@ -9,8 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.home_pharmacy.home_pharmacy.dto.SymptomRequest;
-import ru.home_pharmacy.home_pharmacy.dto.SymptomResponse;
+import ru.home_pharmacy.home_pharmacy.dto.SymptomDto;
 import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.repository.SymptomRepository;
 
@@ -25,23 +24,23 @@ public class SymptomService {
     SymptomRepository symptomRepository;
 
     @Transactional(readOnly = true)
-    public List<SymptomResponse> getAllSymptoms() {
+    public List<SymptomDto> getAllSymptoms() {
         return symptomRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
 
     @Transactional(readOnly = true)
-    public Page<SymptomResponse> getPaginateSymptoms(int page, int size) {
+    public Page<SymptomDto> getPaginateSymptoms(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
         return symptomRepository.findAll(pageable)
-                .map(symptom -> new SymptomResponse(
+                .map(symptom -> new SymptomDto(
                         symptom.getId(),
                         symptom.getName()
                 ));
     }
 
     @Transactional
-    public SymptomResponse createSymptom(SymptomRequest request) {
+    public SymptomDto createSymptom(SymptomDto request) {
         Symptom symptom = Symptom.builder()
                 .name(request.getName())
                 .build();
@@ -52,7 +51,7 @@ public class SymptomService {
 
 
     @Transactional(readOnly = true)
-    public SymptomResponse getSymptom(Long id) {
+    public SymptomDto getSymptom(Long id) {
         Symptom symptom = symptomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Symptom not found with id = " + id));
         return mapToResponse(symptom);
@@ -60,7 +59,7 @@ public class SymptomService {
 
 
     @Transactional
-    public SymptomResponse updateSymptom(Long id, SymptomRequest request) {
+    public SymptomDto updateSymptom(Long id, SymptomDto request) {
         Symptom symptom = symptomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Symptom not found with id = " + id));
 
@@ -78,8 +77,8 @@ public class SymptomService {
         symptomRepository.deleteById(id);
     }
 
-    private SymptomResponse mapToResponse(Symptom symptom) {
-        return SymptomResponse.builder()
+    private SymptomDto mapToResponse(Symptom symptom) {
+        return SymptomDto.builder()
                 .id(symptom.getId())
                 .name(symptom.getName())
                 .build();

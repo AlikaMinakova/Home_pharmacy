@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 public class PharmacyOverviewResponse {
 
-    private Page<PharmacyResponse> all;          // весь список
-    private List<PharmacyResponse> recentlyBought; // купили на этой неделе
-    private List<PharmacyResponse> expiringSoon;   // истекает срок годности (7 дней и меньше)
+    private Page<PharmacyDto> all;          // весь список
+    private List<PharmacyDto> recentlyBought; // купили на этой неделе
+    private List<PharmacyDto> expiringSoon;   // истекает срок годности (7 дней и меньше)
 }

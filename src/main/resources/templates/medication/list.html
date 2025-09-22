@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <h3 class="fw-bold mb-4">Cписок лекарств</h3>
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+        <div class="col" th:each="med : ${medications}">
+            <div class="card h-100 shadow-sm">
+                <img th:if="${med.image != null}" th:src="@{${med.image}}" class="card-img-fixed"
+                     alt="Фото лекарства">
+                <div class="card-body">
+                    <h6 class="fw-bold" th:text="${med.name}"></h6>
+                    <p class="small text-muted" th:text="${med.description}"></p>
+
+                    <!-- Кнопки -->
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/medication/{id}(id=${med.id})}"
+                           class="btn btn-edit px-4">Редактировать</a>
+                        <form th:action="@{/medication/{id}/delete(id=${med.id})}"
+                              method="post" class="d-inline">
+                            <button type="submit" class="btn btn-delete px-4">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

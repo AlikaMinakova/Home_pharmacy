@@ -82,6 +82,29 @@
             <div class="text-danger" th:if="${#fields.hasErrors('diseases')}" th:errors="*{diseases}"></div>
         </div>
 
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Действующие вещества</label>
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                <tr>
+                    <th style="width: 50px;">Выбрать</th>
+                    <th>Название</th>
+                    <th>Описание</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="ingredient : ${ingredients}">
+                    <td class="text-center">
+                        <input type="checkbox" th:value="${ingredient.id}" th:field="*{activeIngredients}">
+                    </td>
+                    <td th:text="${ingredient.name}"></td>
+                    <td th:text="${#strings.abbreviate(ingredient.description, 100)} ?: '—'"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="text-danger" th:if="${#fields.hasErrors('activeIngredients')}" th:errors="*{activeIngredients}"></div>
+        </div>
+
         <button type="submit" class="btn btn-save px-4">Создать</button>
     </form>
 </div>

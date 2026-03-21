@@ -40,6 +40,14 @@
                     <li th:text="'Осталось: ' + ${pharmacy.quantity} + ' шт'"></li>
                     <li th:text="'Дата покупки: ' + ${pharmacy.purchaseDate}"></li>
                     <li th:text="'Срок годности: ' + ${pharmacy.expirationDate}"></li>
+                    <li th:if="${medication.activeIngredients != null && !medication.activeIngredients.isEmpty()}">
+                        <strong>Действующие вещества:</strong>
+                        <span th:each="ingredient, iter : ${medication.activeIngredients}"
+                              th:text="${ingredient.name + (iter.last ? '' : ', ')}"></span>
+                    </li>
+                    <li th:if="${medication.activeIngredients == null or medication.activeIngredients.isEmpty()}">
+                        <strong>Действующие вещества:</strong> не указаны
+                    </li>
                 </ul>
             </div>
 

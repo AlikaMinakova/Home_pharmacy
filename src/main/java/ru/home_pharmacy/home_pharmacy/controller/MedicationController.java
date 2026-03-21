@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
+import ru.home_pharmacy.home_pharmacy.service.ActiveIngredientService;
 import ru.home_pharmacy.home_pharmacy.service.DiseaseService;
 import ru.home_pharmacy.home_pharmacy.service.MedicationService;
 
@@ -26,6 +27,8 @@ public class MedicationController {
     private final MedicationService medicationService;
     @Autowired
     private final DiseaseService diseaseService;
+    @Autowired
+    private final ActiveIngredientService activeIngredientService;
 
     @GetMapping()
     public String getAll(Model model) {
@@ -38,6 +41,7 @@ public class MedicationController {
     public String showCreateForm(Model model) {
         model.addAttribute("medication", new MedicationDto());
         model.addAttribute("diseases", diseaseService.getAll());
+        model.addAttribute("ingredients", activeIngredientService.getAll());
         return "medication/create";
     }
 
@@ -65,10 +69,15 @@ public class MedicationController {
 
     // форма редактирования лекарсва
     @GetMapping("/{id}")
-    public String showUpdateForm(@PathVariable Long id,
-                                 Model model) {
-        model.addAttribute("medication", medicationService.getById(id));
+    public String showUpdateForm(@PathVariable Long id, Model model) {
+        MedicationDto medication = medicationService.getById(id);
+        if (medication == null) {
+            return "redirect:/medication";
+        }
+
+        model.addAttribute("medication", medication);
         model.addAttribute("diseases", diseaseService.getAll());
+        model.addAttribute("ingredients", activeIngredientService.getAll());
         return "medication/update";
     }
 

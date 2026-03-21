@@ -2,12 +2,17 @@ package ru.home_pharmacy.home_pharmacy.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
+import ru.home_pharmacy.home_pharmacy.entity.ActiveIngredient;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
+import ru.home_pharmacy.home_pharmacy.repository.ActiveIngredientRepository;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
 
@@ -24,6 +29,7 @@ import java.util.stream.Collectors;
 public class MedicationService {
     private final MedicationRepository medicationRepository;
     private final DiseaseRepository diseaseRepository;
+    private final ActiveIngredientRepository activeIngredientRepository;
 
     public List<MedicationDto> getAll() {
         return medicationRepository.findAll()
@@ -78,13 +84,25 @@ public class MedicationService {
         medication.setName(request.getName());
         medication.setDescription(request.getDescription());
 
+        // Болезни
         Set<Disease> diseases = new HashSet<>(diseaseRepository.findAllById(
-                request.getDiseases()
-                        .stream()
+                request.getDiseases().stream()
                         .map(Disease::getId)
                         .collect(Collectors.toSet())
         ));
         medication.setDiseases(diseases);
+
+        // Действующие вещества
+        if (request.getActiveIngredients() != null) {
+            Set<ActiveIngredient> ingredients = new HashSet<>(activeIngredientRepository.findAllById(
+                    request.getActiveIngredients().stream()
+                            .map(ActiveIngredient::getId)
+                            .collect(Collectors.toSet())
+            ));
+            medication.setActiveIngredients(ingredients);
+        } else {
+            medication.setActiveIngredients(new HashSet<>());
+        }
     }
 
     private String uploadImage(MultipartFile image) {
@@ -108,16 +126,39 @@ public class MedicationService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public Page<MedicationDto> getMedicationsByActiveIngredientId(Long ingredientId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Medication> medications = medicationRepository.findByActiveIngredientId(ingredientId, pageable);
+        return medications.map(this::toResponse);
+    }
+
     private MedicationDto toResponse(Medication medication) {
+        System.out.println("=== DEBUG Medication ===");
+        System.out.println("ID: " + medication.getId());
+        System.out.println("Name: " + medication.getName());
+
+        // Проверяем diseases
+        System.out.println("Diseases: " + medication.getDiseases());
+        if (medication.getDiseases() != null) {
+            System.out.println("Diseases size: " + medication.getDiseases().size());
+        }
+
+        // 🔥 Проверяем activeIngredients — КЛЮЧЕВОЙ МОМЕНТ
+        System.out.println("ActiveIngredients: " + medication.getActiveIngredients());
+        if (medication.getActiveIngredients() != null) {
+            System.out.println("ActiveIngredients size: " + medication.getActiveIngredients().size());
+        } else {
+            System.out.println("🔥 ActiveIngredients is NULL!");
+        }
         return MedicationDto.builder()
                 .id(medication.getId())
                 .name(medication.getName())
                 .description(medication.getDescription())
-                .diseases(medication.getDiseases())
                 .image(medication.getImage())
+                .diseases(medication.getDiseases())
+                .activeIngredients(medication.getActiveIngredients())
                 .build();
-
-
     }
 }
 

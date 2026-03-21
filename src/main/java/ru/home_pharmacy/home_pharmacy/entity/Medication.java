@@ -40,4 +40,12 @@ public class Medication {
             inverseJoinColumns = @JoinColumn(name = "disease_id")
     )
     private Set<Disease> diseases = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "medication_active_ingredient",
+            joinColumns = @JoinColumn(name = "medication_id"),
+            inverseJoinColumns = @JoinColumn(name = "active_ingredient_id")
+    )
+    private Set<ActiveIngredient> activeIngredients = new HashSet<>();
 }

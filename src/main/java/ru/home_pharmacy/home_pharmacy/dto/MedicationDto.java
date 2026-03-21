@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.home_pharmacy.home_pharmacy.entity.ActiveIngredient;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 
 import java.util.HashSet;
@@ -25,4 +26,5 @@ public class MedicationDto {
     @NotNull(message = "Выберите хотя бы одну болезнь")
     @Size(min = 1, message = "Выберите хотя бы одну болезнь")
     private Set<Disease> diseases = new HashSet<>();
+    private Set<ActiveIngredient> activeIngredients = new HashSet<>();
 }

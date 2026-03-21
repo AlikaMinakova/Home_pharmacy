@@ -34,11 +34,10 @@ public class PharmacyService {
 
     @Transactional(readOnly = true)
     public PharmacyDto getById(Long id) {
-        return pharmacyRepository.findById(id)
+        return pharmacyRepository.findWithMedicationById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
     }
-
 
     @Transactional(readOnly = true)
     public Page<PharmacyDto> getAllMedications(int page, int size) {
@@ -138,13 +137,13 @@ public class PharmacyService {
     private PharmacyDto toResponse(Pharmacy pharmacy) {
         return PharmacyDto.builder()
                 .id(pharmacy.getId())
-                .medication(MedicationDto
-                        .builder()
+                .medication(MedicationDto.builder()
                         .id(pharmacy.getMedication().getId())
                         .name(pharmacy.getMedication().getName())
                         .description(pharmacy.getMedication().getDescription())
                         .image(pharmacy.getMedication().getImage())
                         .diseases(pharmacy.getMedication().getDiseases())
+                        .activeIngredients(pharmacy.getMedication().getActiveIngredients())
                         .build())
                 .quantity(pharmacy.getQuantity())
                 .expirationDate(pharmacy.getExpirationDate())

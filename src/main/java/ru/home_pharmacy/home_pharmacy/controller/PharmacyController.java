@@ -47,13 +47,17 @@ public class PharmacyController {
 
     // страниуца просмотра
     @GetMapping("/detail/{id}")
-    public String showEditForm(@PathVariable Long id, Model model) {
+    public String showDetail(@PathVariable Long id, Model model) {
         PharmacyDto pharmacy = pharmacyService.getById(id);
+
+        if (pharmacy == null || pharmacy.getMedication() == null) {
+            return "redirect:/pharmacies"; // или страница ошибки
+        }
 
         MedicationDto medication = pharmacy.getMedication();
 
-        model.addAttribute("medication", medication);
         model.addAttribute("pharmacy", pharmacy);
+        model.addAttribute("medication", medication);
 
         return "pharmacy/detail";
     }

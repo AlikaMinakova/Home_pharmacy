@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+  <h3 class="fw-bold mb-4">
+    Вещество <span th:text="${ingredient.name}"></span> содержится в <span th:text="${size}"></span> лекарствах
+  </h3>
+
+  <div th:each="med : ${medicationsPage.content}"
+       class="card p-4 mb-3 shadow-sm d-flex flex-row justify-content-between align-items-center">
+
+    <div>
+      <h5 class="fw-bold mb-0" th:text="${med.name}">Название препарата</h5>
+      <p class="text-muted mb-0" th:if="${med.description}" th:text="${#strings.abbreviate(med.description, 100)}"></p>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a th:href="@{/medication/{id}(id=${med.id})}" class="btn btn-edit px-4">Редактировать</a>
+      <form th:action="@{/medication/{id}/delete(id=${med.id})}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-delete px-4">Удалить</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Пагинация -->
+  <nav th:if="${medicationsPage.totalPages > 1}" aria-label="Page navigation">
+    <ul class="pagination justify-content-center mt-4">
+      <li th:classappend="${medicationsPage.first} ? 'disabled'">
+        <a class="page-link"
+           th:href="@{/ingredients/{id}/medications(id=${ingredient.id}, page=${medicationsPage.number - 1}, size=${medicationsPage.size})}">‹</a>
+      </li>
+
+      <li th:each="i : ${#numbers.sequence(0, medicationsPage.totalPages - 1)}"
+          th:classappend="${i == medicationsPage.number} ? 'active'">
+        <a class="page-link" th:text="${i + 1}"
+           th:href="@{/ingredients/{id}/medications(id=${ingredient.id}, page=${i}, size=${medicationsPage.size})}"></a>
+      </li>
+
+      <li th:classappend="${medicationsPage.last} ? 'disabled'">
+        <a class="page-link"
+           th:href="@{/ingredients/{id}/medications(id=${ingredient.id}, page=${medicationsPage.number + 1}, size=${medicationsPage.size})}">›</a>
+      </li>
+    </ul>
+  </nav>
+
+  <a href="/ingredients" class="btn btn-cancel">Назад к веществам</a>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

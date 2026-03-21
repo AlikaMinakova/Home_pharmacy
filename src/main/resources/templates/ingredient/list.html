@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+  <h3 class="fw-bold mb-4">Действующие вещества</h3>
+
+  <!-- Поиск -->
+  <form th:action="@{/ingredients}" method="get" class="mb-4">
+    <div class="input-group">
+      <input type="text" name="name" th:value="${#strings.defaultString(currentName, '')}"
+             class="form-control" placeholder="Поиск по названию...">
+      <button type="submit" class="btn btn-outline-primary">Найти</button>
+      <a th:href="@{/ingredients}" class="btn btn-outline-primary">Сброс</a>
+    </div>
+  </form>
+
+  <a href="/ingredients/new" class="btn btn-add mb-3">Добавить вещество</a>
+
+  <!-- Список веществ -->
+  <div th:each="ingredient : ${ingredientsPage}"
+       class="card p-4 mb-3 shadow-sm d-flex flex-row justify-content-between align-items-center">
+
+    <h5 class="fw-bold mb-0" th:text="${ingredient.name}">Название вещества</h5>
+
+    <div class="d-flex gap-2">
+      <a th:href="@{/ingredients/{id}/edit(id=${ingredient.id})}"
+         class="btn btn-edit px-4">Редактировать</a>
+
+      <form th:action="@{/ingredients/{id}/delete(id=${ingredient.id})}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-delete px-4">Удалить</button>
+      </form>
+
+      <!-- Кнопка: Посмотреть лекарства -->
+      <a th:href="@{/ingredients/{id}/medications(id=${ingredient.id})}"
+         class="btn btn-leak px-4">Посмотреть лекарства</a>
+    </div>
+  </div>
+
+  <!-- Пагинация -->
+  <nav th:if="${ingredientsPage != null and ingredientsPage.totalPages > 1}" aria-label="Page navigation">
+    <ul class="pagination justify-content-center mt-4">
+      <li th:classappend="${ingredientsPage.first} ? 'disabled'">
+        <a class="page-link"
+           th:href="@{/ingredients(page=${ingredientsPage.number - 1}, size=${ingredientsPage.size}, name=${currentName})}">‹</a>
+      </li>
+
+      <li th:each="i : ${#numbers.sequence(0, ingredientsPage.totalPages - 1)}"
+          th:classappend="${i == ingredientsPage.number} ? 'active'">
+        <a class="page-link" th:text="${i + 1}"
+           th:href="@{/ingredients(page=${i}, size=${ingredientsPage.size}, name=${currentName})}"></a>
+      </li>
+
+      <li th:classappend="${ingredientsPage.last} ? 'disabled'">
+        <a class="page-link"
+           th:href="@{/ingredients(page=${ingredientsPage.number + 1}, size=${ingredientsPage.size}, name=${currentName})}">›</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

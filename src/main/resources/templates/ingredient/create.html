@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+  <h3 class="fw-bold mb-4">Добавить действующее вещество</h3>
+
+  <form th:action="@{/ingredients}" th:object="${ingredient}" method="post" class="w-100">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" th:field="*{name}">
+      <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Описание</label>
+      <input type="text" class="form-control" th:field="*{description}">
+      <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+    </div>
+
+    <button type="submit" class="btn btn-save px-4">Создать</button>
+    <a th:href="@{/ingredients}" class="btn btn-cancel px-4">Отмена</a>
+  </form>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

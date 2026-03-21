@@ -13,4 +13,7 @@ import java.util.List;
 public interface MedicationRepository extends JpaRepository<Medication, Long> {
     @Query("SELECT m FROM Medication m JOIN m.diseases d WHERE d.id = :diseaseId")
     List<Medication> findByDiseaseId(@Param("diseaseId") Long diseaseId);
+
+    @Query("SELECT m FROM Medication m JOIN m.activeIngredients ai WHERE ai.id = :ingredientId")
+    Page<Medication> findByActiveIngredientId(@Param("ingredientId") Long ingredientId, Pageable pageable);
 }

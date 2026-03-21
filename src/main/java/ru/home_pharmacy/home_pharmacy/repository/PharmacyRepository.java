@@ -11,10 +11,16 @@ import ru.home_pharmacy.home_pharmacy.entity.Pharmacy;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 
 public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
-    Page<Pharmacy> findByMedicationNameContainingIgnoreCase(String keyword, Pageable pageable);
+    @Query("SELECT p FROM Pharmacy p " +
+            "JOIN p.medication m " +
+            "WHERE LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Pharmacy> findByMedicationNameContainingIgnoreCase(
+            @Param("keyword") String keyword,
+            Pageable pageable);
 
     @Query("SELECT p FROM Pharmacy p WHERE p.purchaseDate >= :startDate")
     List<Pharmacy> findBoughtAfter(@Param("startDate") LocalDate startDate);
@@ -30,4 +36,11 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
     @Transactional
     @Query("DELETE FROM Pharmacy p WHERE p.expirationDate <= :today")
     void deleteAllExpired(@Param("today") LocalDate today);
+
+    @Query("SELECT p FROM Pharmacy p " +
+            "JOIN FETCH p.medication m " +
+            "LEFT JOIN FETCH m.diseases " +
+            "LEFT JOIN FETCH m.activeIngredients " +
+            "WHERE p.id = :id")
+    Optional<Pharmacy> findWithMedicationById(@Param("id") Long id);
 }

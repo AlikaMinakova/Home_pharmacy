@@ -23,8 +23,8 @@
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         <div class="col" th:each="pharmacy : ${pharmacyPage.all}">
             <div class="card h-100 shadow-sm">
-                <img th:if="${pharmacy.medication.image != null}" th:src="@{${pharmacy.medication.image}}" class="card-img-fixed"
-                     alt="Фото лекарства">
+                <img th:src="${pharmacy.medication.image != null ? pharmacy.medication.image : '/no-photo.jpg'}"
+                     class="card-img-fixed" alt="Фото лекарства">
                 <div class="card-body">
                     <p class="text-success small fw-semibold">Есть в аптечке</p>
                     <h6 class="fw-bold">
@@ -89,21 +89,15 @@
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         <div class="col" th:each="recently : ${pharmacyPage.recentlyBought}">
             <div class="card h-100 shadow-sm">
-                <img th:if="${recently.medication.image != null}"
-                     th:src="${recently.medication.image}"
-                     class="card-img-fixed"
-                     alt="лекарство">
+                <img th:src="${recently.medication.image != null ? recently.medication.image : '/no-photo.jpg'}"
+                     class="card-img-fixed" alt="лекарство">
                 <div class="card-body">
-                    <p class="text-success small fw-semibold">Есть в аптечке</p>
-                    <h6 class="fw-bold">
-                        <a th:href="@{/pharmacies/detail/{id}(id=${recently.id})}"
-                           th:text="${recently.medication.name}"
-                           class="text-decoration-none text-dark"></a>
-                    </h6>
+                    <p class="text-success small fw-semibold">Подтверждённый заказ</p>
+                    <h6 class="fw-bold" th:text="${recently.medication.name}"></h6>
                     <ul class="list-unstyled small text-muted">
-                        <li th:text="'Дата покупки: ' + ${recently.purchaseDate}"></li>
-                        <li th:text="'Срок годности: ' + ${recently.expirationDate}"></li>
                         <li th:text="'Количество: ' + ${recently.quantity} + ' шт'"></li>
+                        <li th:text="'Покупатель: ' + ${recently.customerName}"></li>
+                        <li th:text="'Дата: ' + ${#temporals.format(recently.createdAt, 'dd.MM.yyyy HH:mm')}"></li>
                     </ul>
                 </div>
             </div>

@@ -171,7 +171,7 @@ public class MedicationService {
                 .name(medication.getName())
                 .description(medication.getDescription())
                 .image(medication.getImage())
-                .price(medication.getPrice())
+                .price(medication.getPrice() != null ? medication.getPrice() : BigDecimal.ZERO)
                 .diseases(medication.getDiseases())
                 .activeIngredients(medication.getActiveIngredients())
                 .build();

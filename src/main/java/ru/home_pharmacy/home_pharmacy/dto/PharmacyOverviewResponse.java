@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
+import ru.home_pharmacy.home_pharmacy.entity.CustomerOrder;
 
 import java.util.List;
 
@@ -15,6 +16,6 @@ import java.util.List;
 public class PharmacyOverviewResponse {
 
     private Page<PharmacyDto> all;          // весь список
-    private List<PharmacyDto> recentlyBought; // купили на этой неделе
+    private List<CustomerOrder> recentlyBought; // недавно подтверждённые заказы покупателей
     private List<PharmacyDto> expiringSoon;   // истекает срок годности (7 дней и меньше)
 }

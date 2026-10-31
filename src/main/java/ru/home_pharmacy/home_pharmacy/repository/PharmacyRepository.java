@@ -47,4 +47,9 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
     @Query("SELECT COALESCE(SUM(p.quantity), 0) FROM Pharmacy p " +
             "WHERE p.medication.id = :medicationId AND p.expirationDate > :today")
     Long sumAvailableQuantity(@Param("medicationId") Long medicationId, @Param("today") LocalDate today);
+
+    @Query("SELECT p FROM Pharmacy p " +
+            "WHERE p.medication.id = :medicationId AND p.quantity > 0 AND p.expirationDate > :today " +
+            "ORDER BY p.expirationDate ASC, p.purchaseDate ASC")
+    List<Pharmacy> findAvailableBatches(@Param("medicationId") Long medicationId, @Param("today") LocalDate today);
 }

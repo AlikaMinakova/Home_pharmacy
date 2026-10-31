@@ -12,9 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyOverviewResponse;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyDto;
+import ru.home_pharmacy.home_pharmacy.entity.CustomerOrder;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
+import ru.home_pharmacy.home_pharmacy.entity.OrderStatus;
 import ru.home_pharmacy.home_pharmacy.entity.Pharmacy;
+import ru.home_pharmacy.home_pharmacy.repository.CustomerOrderRepository;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PharmacyRepository;
 
@@ -30,6 +33,7 @@ public class PharmacyService {
     private final PharmacyRepository pharmacyRepository;
     //    private final MedicationRepository medicationRepository;
     private final DiseaseRepository diseaseRepository;
+    private final CustomerOrderRepository orderRepository;
 
 
     @Transactional(readOnly = true)
@@ -61,11 +65,9 @@ public class PharmacyService {
 
         LocalDate today = LocalDate.now();
 
-        // Купили на этой неделе
-        LocalDate weekAgo = today.minusDays(7);
-        List<PharmacyDto> recentlyBought = pharmacyRepository.findBoughtAfter(weekAgo)
+        // Недавно подтверждённые заказы покупателей (последние 4)
+        List<CustomerOrder> recentlyBought = orderRepository.findAllByStatusOrderByCreatedAtDesc(OrderStatus.CONFIRMED)
                 .stream()
-                .map(this::toResponse)
                 .limit(4)
                 .toList();
 

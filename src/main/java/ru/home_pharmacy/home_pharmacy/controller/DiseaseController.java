@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.home_pharmacy.home_pharmacy.dto.ActiveIngredientDto;
 import ru.home_pharmacy.home_pharmacy.dto.DiseaseDto;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomDto;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
@@ -33,9 +34,17 @@ public class DiseaseController {
     @GetMapping
     public String listDiseases(@RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "5") int size,
+                               @RequestParam(required = false) String name,
                                Model model) {
-        Page<DiseaseDto> diseasesPage = diseaseService.getAllDiseases(page, size);
+
+        Page<DiseaseDto> diseasesPage;
+        if (name != null && !name.trim().isEmpty()) {
+            diseasesPage = diseaseService.searchByName(name, page, size);
+        } else {
+            diseasesPage = diseaseService.getAllDiseases(page, size);
+        }
         model.addAttribute("diseasesPage", diseasesPage);
+        model.addAttribute("currentName", name);
         return "disease/list";
     }
 

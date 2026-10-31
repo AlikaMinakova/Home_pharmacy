@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomDto;
 import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.repository.SymptomRepository;
@@ -33,6 +34,15 @@ public class SymptomService {
     public Page<SymptomDto> getPaginateSymptoms(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
         return symptomRepository.findAll(pageable)
+                .map(symptom -> new SymptomDto(
+                        symptom.getId(),
+                        symptom.getName()
+                ));
+    }
+
+    public Page<SymptomDto> searchByName(String name, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        return symptomRepository.findByNameContaining(name, pageable)
                 .map(symptom -> new SymptomDto(
                         symptom.getId(),
                         symptom.getName()

@@ -43,4 +43,8 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
             "LEFT JOIN FETCH m.activeIngredients " +
             "WHERE p.id = :id")
     Optional<Pharmacy> findWithMedicationById(@Param("id") Long id);
+
+    @Query("SELECT COALESCE(SUM(p.quantity), 0) FROM Pharmacy p " +
+            "WHERE p.medication.id = :medicationId AND p.expirationDate > :today")
+    Long sumAvailableQuantity(@Param("medicationId") Long medicationId, @Param("today") LocalDate today);
 }

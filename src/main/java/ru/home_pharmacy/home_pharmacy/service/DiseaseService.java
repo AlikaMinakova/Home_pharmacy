@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.home_pharmacy.home_pharmacy.dto.ActiveIngredientDto;
 import ru.home_pharmacy.home_pharmacy.dto.DiseaseDto;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Symptom;
@@ -65,6 +66,17 @@ public class DiseaseService {
     public Page<DiseaseDto> getAllDiseases(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
         return diseaseRepository.findAll(pageable)
+                .map(disease -> new DiseaseDto(
+                        disease.getId(),
+                        disease.getName(),
+                        disease.getDescription(),
+                        null
+                ));
+    }
+
+    public Page<DiseaseDto> searchByName(String name, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        return diseaseRepository.findByNameContaining(name, pageable)
                 .map(disease -> new DiseaseDto(
                         disease.getId(),
                         disease.getName(),

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import ru.home_pharmacy.home_pharmacy.entity.ActiveIngredient;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,6 +24,8 @@ public class MedicationDto {
     private String name;
     private String description;
     private String image;
+    @NotNull(message = "Укажите цену лекарства")
+    private BigDecimal price;
     @NotNull(message = "Выберите хотя бы одну болезнь")
     @Size(min = 1, message = "Выберите хотя бы одну болезнь")
     private Set<Disease> diseases = new HashSet<>();

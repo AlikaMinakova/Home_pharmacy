@@ -3,11 +3,13 @@ package ru.home_pharmacy.home_pharmacy.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.home_pharmacy.home_pharmacy.dto.DiseaseDto;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
@@ -30,9 +32,20 @@ public class MedicationController {
     @Autowired
     private final ActiveIngredientService activeIngredientService;
 
-    @GetMapping()
-    public String getAll(Model model) {
-        model.addAttribute("medications", medicationService.getAll());
+    @GetMapping
+    public String listMedications(@RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "8") int size,
+                               @RequestParam(required = false) String name,
+                               Model model) {
+
+        Page<MedicationDto> medicationsPage;
+        if (name != null && !name.trim().isEmpty()) {
+            medicationsPage = medicationService.searchByName(name, page, size);
+        } else {
+            medicationsPage = medicationService.getAllMedications(page, size);
+        }
+        model.addAttribute("medicationsPage", medicationsPage);
+        model.addAttribute("currentName", name);
         return "medication/list";
     }
 

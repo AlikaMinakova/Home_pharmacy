@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.home_pharmacy.home_pharmacy.dto.DiseaseDto;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomDto;
 import ru.home_pharmacy.home_pharmacy.service.SymptomService;
 
@@ -23,9 +24,16 @@ public class SymptomController {
     @GetMapping
     public String listSymptoms(@RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "5") int size,
+                               @RequestParam(required = false) String name,
                                Model model) {
-        Page<SymptomDto> symptomsPage = symptomService.getPaginateSymptoms(page, size);
+        Page<SymptomDto> symptomsPage;
+        if (name != null && !name.trim().isEmpty()) {
+            symptomsPage = symptomService.searchByName(name, page, size);
+        } else {
+            symptomsPage = symptomService.getPaginateSymptoms(page, size);
+        }
         model.addAttribute("symptomsPage", symptomsPage);
+        model.addAttribute("currentName", name);
         return "symptom/list";
     }
 

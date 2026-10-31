@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,6 +30,9 @@ public class Medication {
 
     @Column(name = "image")
     private String image;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal price;
 
     @OneToMany(mappedBy = "medication", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Pharmacy> pharmacies = new HashSet<>();

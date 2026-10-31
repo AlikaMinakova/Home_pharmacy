@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,63 +13,91 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
     <div class="container">
 
-        <div class="d-none d-lg-flex gap-3">
+        <a class="navbar-brand fw-bold text-primary me-4" th:href="@{/catalog}">ФармКонтроль</a>
 
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="medDropdown"
-                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Лекарства
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="medDropdown">
-                    <li><a class="dropdown-item" th:href="@{/medication}">Список лекарств</a></li>
-                    <li><a class="dropdown-item" th:href="@{/medication/new}">Добавить лекарство</a></li>
-                </ul>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+                aria-controls="navMenu" aria-expanded="false" aria-label="Меню">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+
+            <!-- Меню сотрудника -->
+            <div class="navbar-nav me-auto" sec:authorize="hasRole('EMPLOYEE')">
+
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="medDropdown"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Лекарства
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="medDropdown">
+                        <li><a class="dropdown-item" th:href="@{/medication}">Список лекарств</a></li>
+                        <li><a class="dropdown-item" th:href="@{/medication/new}">Добавить лекарство</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="disDropdown"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Болезни
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="disDropdown">
+                        <li><a class="dropdown-item" th:href="@{/diseases}">Список болезней</a></li>
+                        <li><a class="dropdown-item" th:href="@{/diseases/new}">Добавить болезнь</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="ingDropdown"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Действующие вещества
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="ingDropdown">
+                        <li><a class="dropdown-item" th:href="@{/ingredients}">Список веществ</a></li>
+                        <li><a class="dropdown-item" th:href="@{/ingredients/new}">Добавить вещество</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="symDropdown"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Симптомы
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="symDropdown">
+                        <li><a class="dropdown-item" th:href="@{/symptoms}">Список симптомов</a></li>
+                        <li><a class="dropdown-item" th:href="@{/symptoms/new}">Добавить симптом</a></li>
+                    </ul>
+                </div>
+
+                <a class="nav-link" th:href="@{/pharmacies}">Аптечка</a>
+                <a class="nav-link" th:href="@{/orders}">Заказы</a>
+                <a class="nav-link" th:href="@{/requests}">Заявки</a>
             </div>
 
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="disDropdown"
-                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Болезни
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="disDropdown">
-                    <li><a class="dropdown-item" th:href="@{/diseases}">Список болезней</a></li>
-                    <li><a class="dropdown-item" th:href="@{/diseases/new}">Добавить болезнь</a></li>
-                </ul>
+            <!-- Меню покупателя -->
+            <div class="navbar-nav me-auto" sec:authorize="!isAuthenticated()">
+                <a class="nav-link" th:href="@{/catalog}">Каталог</a>
+                <a class="nav-link" th:href="@{/catalog/diseases}">По болезням</a>
+                <a class="nav-link" th:href="@{/catalog/symptoms}">По симптомам</a>
+                <a class="nav-link" th:href="@{/catalog/ingredients}">По веществам</a>
+                <a class="nav-link" th:href="@{/catalog/request}">Оставить заявку</a>
             </div>
 
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="ingDropdown"
-                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Активные вещества
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="ingDropdown">
-                    <li><a class="dropdown-item" th:href="@{/ingredients}">Список веществ</a></li>
-                    <li><a class="dropdown-item" th:href="@{/ingredients/new}">Добавить вещество</a></li>
-                </ul>
+            <div class="d-flex align-items-center gap-2">
+                <form th:action="@{/catalog}" method="get" class="d-flex me-2" sec:authorize="!isAuthenticated()">
+                    <input type="text" name="name" th:value="${currentName}"
+                           class="form-control me-2" placeholder="Поиск по названию...">
+                    <button type="submit" class="btn btn-outline-primary">Найти</button>
+                </form>
+
+                <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn btn-save px-4">Войти</a>
+
+                <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" class="m-0">
+                    <button type="submit" class="btn btn-cancel px-4">Выйти</button>
+                </form>
             </div>
 
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="symDropdown"
-                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Симптомы
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="symDropdown">
-                    <li><a class="dropdown-item" th:href="@{/symptoms}">Список симптомов</a></li>
-                    <li><a class="dropdown-item" th:href="@{/symptoms/new}">Добавить симптом</a></li>
-                </ul>
-            </div>
         </div>
-
-        <a th:href="@{/pharmacies/new}"
-           class="btn btn-leak px-4">Добавить поступление</a>
-
-        <form th:action="@{/pharmacies}" method="get" class="d-flex">
-            <input type="text" name="keyword" th:value="${keyword}" class="form-control me-2"
-                   placeholder="Поиск по названию...">
-            <button type="submit" class="btn btn-outline-primary">Найти</button>
-        </form>
-
-        <a class="navbar-brand fw-bold text-primary" th:href="@{/pharmacies}">ФармКонтроль</a>
     </div>
 </nav>
 <style>

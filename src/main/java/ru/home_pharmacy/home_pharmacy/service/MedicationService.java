@@ -5,9 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import ru.home_pharmacy.home_pharmacy.dto.ActiveIngredientDto;
+import ru.home_pharmacy.home_pharmacy.dto.DiseaseDto;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.entity.ActiveIngredient;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
@@ -18,6 +21,7 @@ import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -36,6 +40,33 @@ public class MedicationService {
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MedicationDto> getAllMedications(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        return medicationRepository.findAll(pageable)
+                .map(medication -> new MedicationDto(
+                        medication.getId(),
+                        medication.getName(),
+                        medication.getDescription(),
+                        medication.getImage(),
+                        medication.getPrice(),
+                        null,
+                        null));
+    }
+
+    public Page<MedicationDto> searchByName(String name, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        return medicationRepository.findByNameContaining(name, pageable)
+                .map(medication -> new MedicationDto(
+                        medication.getId(),
+                        medication.getName(),
+                        medication.getDescription(),
+                        medication.getImage(),
+                        medication.getPrice(),
+                        null,
+                        null));
     }
 
     @Transactional
@@ -83,6 +114,7 @@ public class MedicationService {
     private void fillMedicationFromRequest(MedicationDto request, Medication medication) {
         medication.setName(request.getName());
         medication.setDescription(request.getDescription());
+        medication.setPrice(request.getPrice() != null ? request.getPrice() : BigDecimal.ZERO);
 
         // Болезни
         Set<Disease> diseases = new HashSet<>(diseaseRepository.findAllById(
@@ -120,7 +152,7 @@ public class MedicationService {
             File uploadFile = new File(dir, filename);
             image.transferTo(uploadFile);
 
-            return "/" + filename;
+            return "/uploads/" + filename;
         } catch (IOException e) {
             throw new RuntimeException("Ошибка при сохранении файла", e);
         }
@@ -134,28 +166,12 @@ public class MedicationService {
     }
 
     private MedicationDto toResponse(Medication medication) {
-        System.out.println("=== DEBUG Medication ===");
-        System.out.println("ID: " + medication.getId());
-        System.out.println("Name: " + medication.getName());
-
-        // Проверяем diseases
-        System.out.println("Diseases: " + medication.getDiseases());
-        if (medication.getDiseases() != null) {
-            System.out.println("Diseases size: " + medication.getDiseases().size());
-        }
-
-        // 🔥 Проверяем activeIngredients — КЛЮЧЕВОЙ МОМЕНТ
-        System.out.println("ActiveIngredients: " + medication.getActiveIngredients());
-        if (medication.getActiveIngredients() != null) {
-            System.out.println("ActiveIngredients size: " + medication.getActiveIngredients().size());
-        } else {
-            System.out.println("🔥 ActiveIngredients is NULL!");
-        }
         return MedicationDto.builder()
                 .id(medication.getId())
                 .name(medication.getName())
                 .description(medication.getDescription())
                 .image(medication.getImage())
+                .price(medication.getPrice())
                 .diseases(medication.getDiseases())
                 .activeIngredients(medication.getActiveIngredients())
                 .build();

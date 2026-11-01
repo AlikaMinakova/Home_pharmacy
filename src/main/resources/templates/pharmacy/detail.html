@@ -37,6 +37,7 @@
                 <h6 class="fw-bold">Основное</h6>
                 <ul class="list-unstyled small">
                     <li th:text="'Описание: ' + ${pharmacy.medication.description}"></li>
+                    <li th:text="'Цена: ' + ${pharmacy.retailPrice} + ' ₽'"></li>
                     <li th:text="'Осталось: ' + ${pharmacy.quantity} + ' шт'"></li>
                     <li th:text="'Дата покупки: ' + ${pharmacy.purchaseDate}"></li>
                     <li th:text="'Срок годности: ' + ${pharmacy.expirationDate}"></li>

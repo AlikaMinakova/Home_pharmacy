@@ -3,6 +3,7 @@ package ru.home_pharmacy.home_pharmacy.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -23,6 +24,9 @@ public class Pharmacy {
 
     @Column(nullable = false)
     private Integer quantity;
+
+    @Column(name = "retail_price", precision = 10, scale = 2)
+    private BigDecimal retailPrice;
 
     @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;

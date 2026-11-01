@@ -1,5 +1,6 @@
 package ru.home_pharmacy.home_pharmacy.dto;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -23,6 +25,9 @@ public class PharmacyDto {
     @NotNull
     @Min(value = 1, message = "Количество должно быть больше 0")
     private Integer quantity;
+    @NotNull(message = "Укажите розничную цену")
+    @DecimalMin(value = "0.01", message = "Цена должна быть больше 0")
+    private BigDecimal retailPrice;
     @NotNull(message = "Срок годности обязателен")
     @FutureOrPresent(message = "Срок годности не может быть в прошлом")
     @DateTimeFormat(pattern = "yyyy-MM-dd")

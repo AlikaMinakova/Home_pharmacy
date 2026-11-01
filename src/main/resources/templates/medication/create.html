@@ -29,6 +29,15 @@
             <div class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
         </div>
 
+        <div class="mb-3 form-check form-switch">
+            <input type="checkbox" class="form-check-input" th:field="*{prescriptionRequired}"
+                   id="prescriptionRequired">
+            <label class="form-check-label fw-semibold" for="prescriptionRequired">
+                Отпускается по рецепту
+            </label>
+            <div class="form-text">Рецептурный препарат будет отмечен в каталоге, а при заказе появится напоминание о рецепте.</div>
+        </div>
+
         <div class="mb-3">
             <label class="form-label fw-semibold">Фото</label>
 

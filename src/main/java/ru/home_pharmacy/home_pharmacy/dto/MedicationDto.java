@@ -26,6 +26,8 @@ public class MedicationDto {
     private String image;
     @NotNull(message = "Укажите цену лекарства")
     private BigDecimal price;
+    @Builder.Default
+    private Boolean prescriptionRequired = false;
     @NotNull(message = "Выберите хотя бы одну болезнь")
     @Size(min = 1, message = "Выберите хотя бы одну болезнь")
     private Set<Disease> diseases = new HashSet<>();

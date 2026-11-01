@@ -30,6 +30,12 @@
         </div>
 
         <div class="mb-3">
+            <label class="form-label fw-semibold">Розничная цена, ₽ <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" class="form-control" th:field="*{retailPrice}">
+            <div class="text-danger" th:if="${#fields.hasErrors('retailPrice')}" th:errors="*{retailPrice}"></div>
+        </div>
+
+        <div class="mb-3">
             <label class="form-label fw-semibold">Дата покупки <span class="text-danger">*</span></label>
             <input type="date" class="form-control" th:field="*{purchaseDate}">
             <div class="text-danger" th:if="${#fields.hasErrors('purchaseDate')}" th:errors="*{purchaseDate}"></div>

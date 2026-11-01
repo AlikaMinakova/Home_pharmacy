@@ -12,8 +12,8 @@
             У <span th:text="${size}"></span> лекарств истёк срок годности
         </h3>
 
-        <form th:action="@{/pharmacies/expired/delete-all}" method="post" class="mb-0">
-            <button type="submit" class="btn btn-delete">Удалить все</button>
+        <form th:action="@{/pharmacies/expired/write-off}" method="post" class="mb-0">
+            <button type="submit" class="btn btn-delete">Списать все</button>
         </form>
     </div>
 
@@ -25,13 +25,14 @@
                      class="card-img-fixed"
                      alt="лекарство">
                 <div class="card-body">
-                    <p class="text-success small fw-semibold">Есть в аптечке</p>
+                    <p class="text-danger small fw-semibold">Просрочено</p>
                     <h6 class="fw-bold">
                         <a th:href="@{/pharmacies/detail/{id}(id=${recently.id})}"
                            th:text="${recently.medication.name}"
                            class="text-decoration-none text-dark"></a>
                     </h6>
                     <ul class="list-unstyled small text-muted">
+                        <li th:text="'Цена: ' + ${recently.retailPrice} + ' ₽'"></li>
                         <li th:text="'Дата покупки: ' + ${recently.purchaseDate}"></li>
                         <li th:text="'Срок годности: ' + ${recently.expirationDate}"></li>
                         <li th:text="'Количество: ' + ${recently.quantity} + ' шт'"></li>

@@ -33,6 +33,7 @@
                            class="text-decoration-none text-dark"></a>
                     </h6>
                     <ul class="list-unstyled small text-muted">
+                        <li th:text="'Цена: ' + ${pharmacy.retailPrice} + ' ₽'"></li>
                         <li th:text="'Дата покупки: ' + ${pharmacy.purchaseDate}"></li>
                         <li th:text="'Срок годности: ' + ${pharmacy.expirationDate}"></li>
                         <li th:text="'Количество: ' + ${pharmacy.quantity} + ' шт'"></li>
@@ -106,10 +107,10 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold mb-0 text-dark">
-            Закончился срок годности
+            Истекает срок (≤ 7 дней)
         </h3>
 
-        <a th:href="@{/pharmacies/expired}" class="btn btn-save px-4">
+        <a th:href="@{/pharmacies/expiring}" class="btn btn-save px-4">
             Посмотреть все
         </a>
     </div>

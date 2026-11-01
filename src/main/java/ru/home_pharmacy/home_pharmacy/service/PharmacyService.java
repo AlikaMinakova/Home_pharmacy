@@ -12,16 +12,21 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyOverviewResponse;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyDto;
+import ru.home_pharmacy.home_pharmacy.dto.ArchiveDto;
 import ru.home_pharmacy.home_pharmacy.entity.CustomerOrder;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.entity.OrderStatus;
+import ru.home_pharmacy.home_pharmacy.entity.Archive;
 import ru.home_pharmacy.home_pharmacy.entity.Pharmacy;
 import ru.home_pharmacy.home_pharmacy.repository.CustomerOrderRepository;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
+import ru.home_pharmacy.home_pharmacy.repository.ArchiveRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PharmacyRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,6 +39,7 @@ public class PharmacyService {
     //    private final MedicationRepository medicationRepository;
     private final DiseaseRepository diseaseRepository;
     private final CustomerOrderRepository orderRepository;
+    private final ArchiveRepository archiveRepository;
 
 
     @Transactional(readOnly = true)
@@ -71,7 +77,7 @@ public class PharmacyService {
                 .limit(4)
                 .toList();
 
-        List<PharmacyDto> expiringSoon = pharmacyRepository.findExpiringSoon(LocalDate.now())
+        List<PharmacyDto> expiringSoon = pharmacyRepository.findExpiringSoon(LocalDate.now(), LocalDate.now().plusDays(7))
                 .stream()
                 .map(this::toResponse)
                 .limit(4)
@@ -89,6 +95,20 @@ public class PharmacyService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("expirationDate").ascending());
         return pharmacyRepository.findExpired(LocalDate.now(), pageable)
                 .map(this::toResponse); // Page<T>.map() позволяет преобразовать сущности в DTO
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PharmacyDto> getExpiringSoonPharmacies(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("expirationDate").ascending());
+        return pharmacyRepository.findExpiringSoonPage(LocalDate.now(), LocalDate.now().plusDays(7), pageable)
+                .map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ArchiveDto> getArchive(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("writtenOffAt").descending());
+        return archiveRepository.findAllByOrderByWrittenOffAtDesc(pageable)
+                .map(this::toArchiveResponse);
     }
 
     @Transactional
@@ -121,6 +141,7 @@ public class PharmacyService {
                 .diseases(request.getMedication().getDiseases())
                 .build());
         pharmacy.setQuantity(request.getQuantity());
+        pharmacy.setRetailPrice(request.getRetailPrice());
         pharmacy.setPurchaseDate(request.getPurchaseDate());
         pharmacy.setExpirationDate(request.getExpirationDate());
     }
@@ -131,8 +152,36 @@ public class PharmacyService {
     }
 
     @Transactional
-    public void deleteAllExpired() {
-        pharmacyRepository.deleteAllExpired(LocalDate.now());
+    public void writeOffAllExpired() {
+        LocalDate today = LocalDate.now();
+        List<Pharmacy> expired = pharmacyRepository.findAllExpired(today);
+
+        List<Archive> archiveEntries = new ArrayList<>();
+        for (Pharmacy batch : expired) {
+            archiveEntries.add(Archive.builder()
+                    .medication(batch.getMedication())
+                    .quantity(batch.getQuantity())
+                    .retailPrice(batch.getRetailPrice())
+                    .expirationDate(batch.getExpirationDate())
+                    .purchaseDate(batch.getPurchaseDate())
+                    .writtenOffAt(LocalDateTime.now())
+                    .build());
+        }
+        archiveRepository.saveAll(archiveEntries);
+        pharmacyRepository.deleteAll(expired);
+    }
+
+    private ArchiveDto toArchiveResponse(Archive archive) {
+        return ArchiveDto.builder()
+                .id(archive.getId())
+                .medicationName(archive.getMedication().getName())
+                .image(archive.getMedication().getImage())
+                .quantity(archive.getQuantity())
+                .retailPrice(archive.getRetailPrice())
+                .expirationDate(archive.getExpirationDate())
+                .purchaseDate(archive.getPurchaseDate())
+                .writtenOffAt(archive.getWrittenOffAt())
+                .build();
     }
 
 
@@ -148,6 +197,7 @@ public class PharmacyService {
                         .activeIngredients(pharmacy.getMedication().getActiveIngredients())
                         .build())
                 .quantity(pharmacy.getQuantity())
+                .retailPrice(pharmacy.getRetailPrice())
                 .expirationDate(pharmacy.getExpirationDate())
                 .purchaseDate(pharmacy.getPurchaseDate())
                 .build();

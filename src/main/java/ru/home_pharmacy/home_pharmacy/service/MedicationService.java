@@ -52,6 +52,7 @@ public class MedicationService {
                         medication.getDescription(),
                         medication.getImage(),
                         medication.getPrice(),
+                        medication.getPrescriptionRequired(),
                         null,
                         null));
     }
@@ -65,6 +66,7 @@ public class MedicationService {
                         medication.getDescription(),
                         medication.getImage(),
                         medication.getPrice(),
+                        medication.getPrescriptionRequired(),
                         null,
                         null));
     }
@@ -115,6 +117,8 @@ public class MedicationService {
         medication.setName(request.getName());
         medication.setDescription(request.getDescription());
         medication.setPrice(request.getPrice() != null ? request.getPrice() : BigDecimal.ZERO);
+        medication.setPrescriptionRequired(
+                request.getPrescriptionRequired() != null && request.getPrescriptionRequired());
 
         // Болезни
         Set<Disease> diseases = new HashSet<>(diseaseRepository.findAllById(
@@ -172,6 +176,7 @@ public class MedicationService {
                 .description(medication.getDescription())
                 .image(medication.getImage())
                 .price(medication.getPrice() != null ? medication.getPrice() : BigDecimal.ZERO)
+                .prescriptionRequired(Boolean.TRUE.equals(medication.getPrescriptionRequired()))
                 .diseases(medication.getDiseases())
                 .activeIngredients(medication.getActiveIngredients())
                 .build();

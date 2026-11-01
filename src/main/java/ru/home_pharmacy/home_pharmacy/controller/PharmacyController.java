@@ -44,6 +44,22 @@ public class PharmacyController {
         return "pharmacy/listForDelete";
     }
 
+    @GetMapping("/expiring")
+    public String listExpiringSoon(@RequestParam(defaultValue = "0") int page,
+                                   @RequestParam(defaultValue = "8") int size,
+                                   Model model) {
+        model.addAttribute("pharmacyPage", pharmacyService.getExpiringSoonPharmacies(page, size));
+        return "pharmacy/listExpiring";
+    }
+
+    @GetMapping("/archive")
+    public String listArchive(@RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "8") int size,
+                              Model model) {
+        model.addAttribute("archivePage", pharmacyService.getArchive(page, size));
+        return "pharmacy/archive";
+    }
+
 
     // страниуца просмотра
     @GetMapping("/detail/{id}")
@@ -122,9 +138,9 @@ public class PharmacyController {
         return "redirect:/pharmacies";
     }
 
-    @PostMapping("/expired/delete-all")
-    public String deleteAllExpired() {
-        pharmacyService.deleteAllExpired();
+    @PostMapping("/expired/write-off")
+    public String writeOffAllExpired() {
+        pharmacyService.writeOffAllExpired();
         return "redirect:/pharmacies/expired";
     }
 }

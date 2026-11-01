@@ -34,6 +34,10 @@ public class Medication {
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Builder.Default
+    @Column(name = "prescription_required")
+    private Boolean prescriptionRequired = false;
+
     @OneToMany(mappedBy = "medication", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Pharmacy> pharmacies = new HashSet<>();
 

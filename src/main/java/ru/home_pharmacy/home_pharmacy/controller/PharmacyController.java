@@ -53,8 +53,16 @@ public class PharmacyController {
     }
 
     @GetMapping("/archive")
-    public String listArchive(Model model) {
-        model.addAttribute("history", pharmacyService.getHistory());
+    public String listArchive(@RequestParam(required = false) String name,
+                              @RequestParam(required = false) String status,
+                              @RequestParam(defaultValue = "purchaseDate") String sort,
+                              @RequestParam(defaultValue = "desc") String dir,
+                              Model model) {
+        model.addAttribute("history", pharmacyService.getHistory(name, status, sort, dir));
+        model.addAttribute("name", name);
+        model.addAttribute("status", status);
+        model.addAttribute("sort", sort);
+        model.addAttribute("dir", dir);
         return "pharmacy/archive";
     }
 

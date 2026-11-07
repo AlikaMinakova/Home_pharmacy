@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.home_pharmacy.home_pharmacy.dto.ActiveIngredientDto;
 import ru.home_pharmacy.home_pharmacy.dto.DiseaseDto;
 import ru.home_pharmacy.home_pharmacy.entity.ActiveIngredient;
+import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.mapper.ActiveIngredientMapper;
 import ru.home_pharmacy.home_pharmacy.repository.ActiveIngredientRepository;
 
@@ -81,10 +82,14 @@ public class ActiveIngredientService {
     }
 
     // Удалить вещество
+    @Transactional
     public void deleteActiveIngredient(Long id) {
-        if (!activeIngredientRepository.existsById(id)) {
-            throw new NoSuchElementException("Вещество не найдено");
+        ActiveIngredient ingredient = activeIngredientRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Вещество не найдено"));
+        // Разорвать связь с лекарствами (владеющая сторона связи — Medication.activeIngredients)
+        for (Medication medication : ingredient.getMedications()) {
+            medication.getActiveIngredients().remove(ingredient);
         }
-        activeIngredientRepository.deleteById(id);
+        activeIngredientRepository.delete(ingredient);
     }
 }

@@ -16,4 +16,6 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Lo
     List<CustomerOrder> findAllByCustomerPhoneOrderByCreatedAtDesc(String customerPhone);
 
     long countByStatus(OrderStatus status);
+
+    void deleteByMedication_Id(Long medicationId);
 }

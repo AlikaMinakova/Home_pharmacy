@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.home_pharmacy.home_pharmacy.dto.ActiveIngredientDto;
 import ru.home_pharmacy.home_pharmacy.dto.DiseaseDto;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
+import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.SymptomRepository;
@@ -106,10 +107,15 @@ public class DiseaseService {
 
     @Transactional
     public void deleteDisease(Long id) {
-        if (!diseaseRepository.existsById(id)) {
-            throw new RuntimeException("Disease not found with id = " + id);
+        Disease disease = diseaseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Disease not found with id = " + id));
+        // Разорвать связь с лекарствами (владеющая сторона связи — Medication.diseases)
+        for (Medication medication : disease.getMedications()) {
+            medication.getDiseases().remove(disease);
         }
-        diseaseRepository.deleteById(id);
+        // Связь с симптомами принадлежит Disease — Hibernate удалит строки junction-таблицы сам
+        disease.getSymptoms().clear();
+        diseaseRepository.delete(disease);
     }
 
     private DiseaseDto mapToResponse(Disease disease) {

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.dto.SymptomDto;
+import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.repository.SymptomRepository;
 
@@ -81,10 +82,13 @@ public class SymptomService {
 
     @Transactional
     public void deleteSymptom(Long id) {
-        if (!symptomRepository.existsById(id)) {
-            throw new RuntimeException("Symptom not found with id = " + id);
+        Symptom symptom = symptomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Symptom not found with id = " + id));
+        // Разорвать связь с болезнями (владеющая сторона связи — Disease.symptoms)
+        for (Disease disease : symptom.getDiseases()) {
+            disease.getSymptoms().remove(symptom);
         }
-        symptomRepository.deleteById(id);
+        symptomRepository.delete(symptom);
     }
 
     private SymptomDto mapToResponse(Symptom symptom) {

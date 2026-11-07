@@ -196,17 +196,40 @@ public class PharmacyService {
      * и удалённые (архив). Отсортированы по дате по убыванию.
      */
     @Transactional(readOnly = true)
-    public List<PharmacyHistoryItem> getHistory() {
+    public List<PharmacyHistoryItem> getHistory(String name, String status, String sort, String dir) {
         List<PharmacyHistoryItem> items = new ArrayList<>();
         for (Pharmacy p : pharmacyRepository.findAll()) {
             items.add(toHistoryItem(p, "ACTIVE", p.getPurchaseDate()));
         }
         for (Archive a : archiveRepository.findAll()) {
-            String status = "WRITTEN_OFF".equals(a.getReason()) ? "WRITTEN_OFF" : "DELETED";
-            items.add(toHistoryItem(a, status, a.getWrittenOffAt().toLocalDate()));
+            String s = "WRITTEN_OFF".equals(a.getReason()) ? "WRITTEN_OFF" : "DELETED";
+            items.add(toHistoryItem(a, s, a.getWrittenOffAt().toLocalDate()));
         }
-        items.sort(Comparator.comparing(PharmacyHistoryItem::getSortDate,
-                Comparator.nullsLast(Comparator.naturalOrder())).reversed());
+        if (name != null && !name.isBlank()) {
+            String lower = name.trim().toLowerCase();
+            items = items.stream()
+                    .filter(i -> i.getMedicationName() != null
+                            && i.getMedicationName().toLowerCase().contains(lower))
+                    .collect(Collectors.toList());
+        }
+        if (status != null && !status.isBlank()) {
+            items = items.stream()
+                    .filter(i -> status.equals(i.getStatus()))
+                    .collect(Collectors.toList());
+        }
+        Comparator<PharmacyHistoryItem> comparator = switch (sort == null ? "" : sort) {
+            case "name" -> Comparator.comparing(PharmacyHistoryItem::getMedicationName,
+                    Comparator.nullsLast(Comparator.naturalOrder()));
+            case "expirationDate" -> Comparator.comparing(PharmacyHistoryItem::getExpirationDate,
+                    Comparator.nullsLast(Comparator.naturalOrder()));
+            default -> Comparator.comparing(PharmacyHistoryItem::getPurchaseDate,
+                    Comparator.nullsLast(Comparator.naturalOrder()));
+        };
+        if ("asc".equals(dir)) {
+            items.sort(comparator);
+        } else {
+            items.sort(comparator.reversed());
+        }
         return items;
     }
 

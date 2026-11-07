@@ -16,6 +16,8 @@ import ru.home_pharmacy.home_pharmacy.entity.ActiveIngredient;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.repository.ActiveIngredientRepository;
+import ru.home_pharmacy.home_pharmacy.repository.ArchiveRepository;
+import ru.home_pharmacy.home_pharmacy.repository.CustomerOrderRepository;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
 
@@ -34,6 +36,8 @@ public class MedicationService {
     private final MedicationRepository medicationRepository;
     private final DiseaseRepository diseaseRepository;
     private final ActiveIngredientRepository activeIngredientRepository;
+    private final ArchiveRepository archiveRepository;
+    private final CustomerOrderRepository orderRepository;
 
     public List<MedicationDto> getAll() {
         return medicationRepository.findAll()
@@ -107,10 +111,16 @@ public class MedicationService {
 
     @Transactional
     public void delete(Long id) {
-        if (!medicationRepository.existsById(id)) {
-            throw new RuntimeException("Medication not found with id = " + id);
-        }
-        medicationRepository.deleteById(id);
+        Medication medication = medicationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Medication not found with id = " + id));
+        // Разорвать связи с болезнями и действующими веществами (junction-таблицы)
+        medication.getDiseases().clear();
+        medication.getActiveIngredients().clear();
+        // Удалить зависимые записи (FK): архив и заказы покупателей
+        archiveRepository.deleteByMedication_Id(id);
+        orderRepository.deleteByMedication_Id(id);
+        // Партии в аптечке удалятся каскадно (orphanRemoval)
+        medicationRepository.delete(medication);
     }
 
     private void fillMedicationFromRequest(MedicationDto request, Medication medication) {

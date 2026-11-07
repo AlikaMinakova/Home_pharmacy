@@ -12,4 +12,6 @@ public interface ArchiveRepository extends JpaRepository<Archive, Long> {
     List<Archive> findAllByOrderByWrittenOffAtDesc();
 
     Page<Archive> findAllByOrderByWrittenOffAtDesc(Pageable pageable);
+
+    void deleteByMedication_Id(Long medicationId);
 }

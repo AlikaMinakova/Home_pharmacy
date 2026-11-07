@@ -48,7 +48,7 @@
                                 th:onclick="'openChat(' + ${request.id} + ')'">Чат</button>
                         <form th:if="${request.status.name() == 'NEW'}"
                               th:action="@{/my-requests/{id}/confirm(id=${request.id})}" method="post" class="mb-0">
-                            <button type="submit" class="btn btn-leak px-3">Подтвердить (рецепт есть)</button>
+                            <button type="submit" class="btn btn-leak px-3">Подтвердить (рецепт есть/без рецепта)</button>
                         </form>
                         <form th:if="${request.status.name() == 'NEW'}"
                               th:action="@{/my-requests/{id}/cancel(id=${request.id})}" method="post" class="mb-0">

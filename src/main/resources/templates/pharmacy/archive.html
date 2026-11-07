@@ -9,10 +9,37 @@
     <a th:href="@{/pharmacies}" class="btn btn-cancel px-3 mb-4">← Аптечка</a>
 
     <h3 class="fw-bold mb-1">История поступлений</h3>
-    <p class="text-muted mb-4">Все партии: текущие в аптечке, списанные просроченные и удалённые вручную.</p>
+
+    <form th:action="@{/pharmacies/archive}" method="get" class="row g-2 align-items-center mb-4">
+        <div class="col-md-4">
+            <input type="text" name="name" th:value="${#strings.defaultString(name, '')}"
+                   class="form-control" placeholder="Поиск по названию лекарства...">
+        </div>
+        <div class="col-md-3">
+            <select name="sort" class="form-select" onchange="this.form.submit()">
+                <option value="purchaseDate" th:selected="${sort == 'purchaseDate'}">Дата покупки</option>
+                <option value="name" th:selected="${sort == 'name'}">Название</option>
+                <option value="expirationDate" th:selected="${sort == 'expirationDate'}">Срок годности</option>
+            </select>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+            <a class="btn btn-outline-primary px-3"
+               th:href="@{/pharmacies/archive(name=${name}, sort=${sort}, dir=${dir == 'asc' ? 'desc' : 'asc'})}"
+               th:title="'Направление сортировки'">
+                <span th:text="${dir == 'asc' ? '▲' : '▼'}"></span>
+            </a>
+            <button type="submit" class="btn btn-save px-3">Найти</button>
+            <a th:href="@{/pharmacies/archive}" class="btn btn-cancel px-3">Сброс</a>
+        </div>
+    </form>
 
     <div th:if="${history == null or #lists.isEmpty(history)}" class="alert alert-secondary">
-        История пуста. Добавьте поступление в разделе «Аптечка».
+        <span th:if="${#strings.isEmpty(name)}">
+            История пуста. Добавьте поступление в разделе «Аптечка».
+        </span>
+        <span th:unless="${#strings.isEmpty(name)}">
+            По заданному фильтру ничего не найдено.
+        </span>
     </div>
 
     <div class="table-responsive" th:unless="${history == null or #lists.isEmpty(history)}">

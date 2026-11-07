@@ -118,6 +118,50 @@
 
 ---
 
+## Запуск проекта
+
+Требуется **Java 17** и **Docker** (для PostgreSQL).
+
+### 1. Запустить базу данных (PostgreSQL)
+
+Из корня проекта (`docker-compose.yml` поднимает БД на порту **5433**, БД `home_pharmacy`, логин/пароль `postgres/postgres`):
+
+```bash
+docker compose up -d
+```
+
+Проверить, что БД запустилась:
+
+```bash
+docker compose ps
+```
+
+> Если контейнер `home_pharmacy_db` создан в контексте Docker Desktop и не виден в обычном контексте, используйте:
+> ```bash
+> docker --context desktop-linux compose up -d
+> ```
+
+### 2. Запустить приложение
+
+**Вариант A — командой (Maven wrapper):**
+
+```bash
+./mvnw spring-boot:run
+```
+
+**Вариант B — из IDE:** запустите класс `HomePharmacyApplication`.
+
+### 3. Открыть приложение
+
+- Адрес: **http://localhost:8080**
+- Сотрудник: логин `admin`, пароль `admin123`
+- Покупатель: регистрация через `/register` (логин = номер телефона)
+
+> При первом старте на пустой БД приложение автоматически создаёт таблицы и заполняет демо-данными
+> (`DemoDataInitializer`), а также учётную запись сотрудника `admin` (`DataInitializer`).
+
+---
+
 ## Структура проекта
 
 ```

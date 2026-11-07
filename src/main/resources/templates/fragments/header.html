@@ -72,7 +72,10 @@
                 <a class="nav-link" th:href="@{/pharmacies}">Аптечка</a>
                 <a class="nav-link" th:href="@{/pharmacies/archive}">Архив</a>
                 <a class="nav-link" th:href="@{/orders}">Заказы</a>
-                <a class="nav-link" th:href="@{/requests}">Заявки</a>
+                <a class="nav-link" th:href="@{/requests}">Заявки
+                    <span th:if="${pharmacistUnread != null and pharmacistUnread > 0}"
+                          class="badge bg-danger rounded-pill">[[${pharmacistUnread}]]</span>
+                </a>
             </div>
 
             <!-- Меню покупателя (гость) -->

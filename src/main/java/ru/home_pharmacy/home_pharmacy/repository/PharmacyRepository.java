@@ -20,6 +20,17 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
             @Param("keyword") String keyword,
             Pageable pageable);
 
+    // Актуальные партии: есть остаток и срок ещё не истёк
+    @Query("SELECT p FROM Pharmacy p WHERE p.quantity > 0 AND p.expirationDate > :today")
+    Page<Pharmacy> findAllAvailable(@Param("today") LocalDate today, Pageable pageable);
+
+    @Query("SELECT p FROM Pharmacy p JOIN p.medication m " +
+            "WHERE p.quantity > 0 AND p.expirationDate > :today " +
+            "AND LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Pharmacy> findAvailableByMedicationNameContaining(@Param("keyword") String keyword,
+                                                           @Param("today") LocalDate today,
+                                                           Pageable pageable);
+
     @Query("SELECT p FROM Pharmacy p WHERE p.purchaseDate >= :startDate")
     List<Pharmacy> findBoughtAfter(@Param("startDate") LocalDate startDate);
 

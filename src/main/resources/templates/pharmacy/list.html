@@ -6,7 +6,10 @@
 <div th:replace="fragments/header :: body"></div>
 
 <div class="container my-5">
-    <h3 class="fw-bold mb-4">Аптечка</h3>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0">Аптечка</h3>
+        <a th:href="@{/pharmacies/new}" class="btn btn-save px-4">+ Добавить поступление</a>
+    </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <span class="fw-semibold">СОРТИРОВАТЬ:</span>

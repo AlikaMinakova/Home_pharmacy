@@ -23,8 +23,11 @@
                 <img th:src="${med.image != null ? med.image : '/no-photo.jpg'}" class="card-img-fixed"
                      alt="Фото лекарства">
                 <div class="card-body">
-                    <h6 class="fw-bold" th:text="${med.name}"></h6>
-                    <p class="small text-muted" th:text="${med.description}"></p>
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="fw-bold mb-0" th:text="${med.name}"></h6>
+                        <span th:if="${med.prescriptionRequired}" class="badge bg-danger">По рецепту</span>
+                    </div>
+                    <p class="small text-muted mt-1" th:text="${med.description}"></p>
                     <p class="fw-semibold" th:if="${med.price != null}"
                        th:text="'Цена: ' + ${#numbers.formatDecimal(med.price, 1, 2)} + ' ₽'"></p>
 

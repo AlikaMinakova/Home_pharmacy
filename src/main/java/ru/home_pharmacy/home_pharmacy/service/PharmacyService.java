@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyOverviewResponse;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyDto;
+import ru.home_pharmacy.home_pharmacy.dto.PharmacyHistoryItem;
 import ru.home_pharmacy.home_pharmacy.dto.ArchiveDto;
 import ru.home_pharmacy.home_pharmacy.entity.CustomerOrder;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
@@ -24,9 +25,11 @@ import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.ArchiveRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PharmacyRepository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,16 +63,18 @@ public class PharmacyService {
     public PharmacyOverviewResponse getPharmacyOverview(int page, int size, String keyword, String sort) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort).ascending());
 
+        LocalDate today = LocalDate.now();
+
+        // Только актуальные партии: есть остаток и срок не истёк.
+        // Каждая поставка — отдельный товар со своей ценой, датой и количеством.
         Page<PharmacyDto> all;
         if (keyword != null && !keyword.isBlank()) {
-            all = pharmacyRepository.findByMedicationNameContainingIgnoreCase(keyword, pageable)
+            all = pharmacyRepository.findAvailableByMedicationNameContaining(keyword, today, pageable)
                     .map(this::toResponse);
         } else {
-            all = pharmacyRepository.findAll(pageable)
+            all = pharmacyRepository.findAllAvailable(today, pageable)
                     .map(this::toResponse);
         }
-
-        LocalDate today = LocalDate.now();
 
         // Недавно подтверждённые заказы покупателей (последние 4)
         List<CustomerOrder> recentlyBought = orderRepository.findAllByStatusOrderByCreatedAtDesc(OrderStatus.CONFIRMED)
@@ -165,6 +170,7 @@ public class PharmacyService {
                     .expirationDate(batch.getExpirationDate())
                     .purchaseDate(batch.getPurchaseDate())
                     .writtenOffAt(LocalDateTime.now())
+                    .reason("WRITTEN_OFF")
                     .build());
         }
         archiveRepository.saveAll(archiveEntries);
@@ -181,6 +187,54 @@ public class PharmacyService {
                 .expirationDate(archive.getExpirationDate())
                 .purchaseDate(archive.getPurchaseDate())
                 .writtenOffAt(archive.getWrittenOffAt())
+                .reason(archive.getReason())
+                .build();
+    }
+
+    /**
+     * Единая история поступлений: активные партии («в аптечке») + списанные
+     * и удалённые (архив). Отсортированы по дате по убыванию.
+     */
+    @Transactional(readOnly = true)
+    public List<PharmacyHistoryItem> getHistory() {
+        List<PharmacyHistoryItem> items = new ArrayList<>();
+        for (Pharmacy p : pharmacyRepository.findAll()) {
+            items.add(toHistoryItem(p, "ACTIVE", p.getPurchaseDate()));
+        }
+        for (Archive a : archiveRepository.findAll()) {
+            String status = "WRITTEN_OFF".equals(a.getReason()) ? "WRITTEN_OFF" : "DELETED";
+            items.add(toHistoryItem(a, status, a.getWrittenOffAt().toLocalDate()));
+        }
+        items.sort(Comparator.comparing(PharmacyHistoryItem::getSortDate,
+                Comparator.nullsLast(Comparator.naturalOrder())).reversed());
+        return items;
+    }
+
+    private PharmacyHistoryItem toHistoryItem(Pharmacy p, String status, LocalDate sortDate) {
+        return PharmacyHistoryItem.builder()
+                .id(p.getId())
+                .medicationName(p.getMedication().getName())
+                .image(p.getMedication().getImage())
+                .quantity(p.getQuantity())
+                .retailPrice(p.getRetailPrice())
+                .expirationDate(p.getExpirationDate())
+                .purchaseDate(p.getPurchaseDate())
+                .status(status)
+                .sortDate(sortDate)
+                .build();
+    }
+
+    private PharmacyHistoryItem toHistoryItem(Archive a, String status, LocalDate sortDate) {
+        return PharmacyHistoryItem.builder()
+                .id(a.getId())
+                .medicationName(a.getMedication().getName())
+                .image(a.getMedication().getImage())
+                .quantity(a.getQuantity())
+                .retailPrice(a.getRetailPrice())
+                .expirationDate(a.getExpirationDate())
+                .purchaseDate(a.getPurchaseDate())
+                .status(status)
+                .sortDate(sortDate)
                 .build();
     }
 
@@ -193,6 +247,8 @@ public class PharmacyService {
                         .name(pharmacy.getMedication().getName())
                         .description(pharmacy.getMedication().getDescription())
                         .image(pharmacy.getMedication().getImage())
+                        .price(pharmacy.getMedication().getPrice() != null
+                                ? pharmacy.getMedication().getPrice() : BigDecimal.ZERO)
                         .diseases(pharmacy.getMedication().getDiseases())
                         .activeIngredients(pharmacy.getMedication().getActiveIngredients())
                         .build())
@@ -204,6 +260,18 @@ public class PharmacyService {
     }
 
     public void delete(Long id) {
-        pharmacyRepository.deleteById(id);
+        Pharmacy batch = pharmacyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Поступление не найдено: " + id));
+        // Не удаляем безвозвратно, а переносим в архив — сохраняем историю.
+        archiveRepository.save(Archive.builder()
+                .medication(batch.getMedication())
+                .quantity(batch.getQuantity())
+                .retailPrice(batch.getRetailPrice())
+                .expirationDate(batch.getExpirationDate())
+                .purchaseDate(batch.getPurchaseDate())
+                .writtenOffAt(LocalDateTime.now())
+                .reason("DELETED")
+                .build());
+        pharmacyRepository.delete(batch);
     }
 }

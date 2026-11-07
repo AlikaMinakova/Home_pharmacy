@@ -53,10 +53,8 @@ public class PharmacyController {
     }
 
     @GetMapping("/archive")
-    public String listArchive(@RequestParam(defaultValue = "0") int page,
-                              @RequestParam(defaultValue = "8") int size,
-                              Model model) {
-        model.addAttribute("archivePage", pharmacyService.getArchive(page, size));
+    public String listArchive(Model model) {
+        model.addAttribute("history", pharmacyService.getHistory());
         return "pharmacy/archive";
     }
 

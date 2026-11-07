@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <a th:href="@{/pharmacies}" class="btn btn-cancel px-3 mb-4">← Аптечка</a>
+
+    <h3 class="fw-bold mb-1">История поступлений</h3>
+    <p class="text-muted mb-4">Все партии: текущие в аптечке, списанные просроченные и удалённые вручную.</p>
+
+    <div th:if="${history == null or #lists.isEmpty(history)}" class="alert alert-secondary">
+        История пуста. Добавьте поступление в разделе «Аптечка».
+    </div>
+
+    <div class="table-responsive" th:unless="${history == null or #lists.isEmpty(history)}">
+        <table class="table table-hover align-middle shadow-sm">
+            <thead class="table-light">
+            <tr>
+                <th>Лекарство</th>
+                <th>Кол-во</th>
+                <th>Цена</th>
+                <th>Дата покупки</th>
+                <th>Срок годности</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${history}">
+                <td th:text="${item.medicationName}"></td>
+                <td th:text="${item.quantity}"></td>
+                <td th:text="${item.retailPrice != null ? #numbers.formatDecimal(item.retailPrice, 1, 2) + ' ₽' : '—'}"></td>
+                <td th:text="${item.purchaseDate} ?: '—'"></td>
+                <td th:text="${item.expirationDate}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

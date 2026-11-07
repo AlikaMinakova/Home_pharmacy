@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <a th:href="@{/catalog}" class="btn btn-cancel px-3 mb-4">← В каталог</a>
+
+    <h3 class="fw-bold mb-4">Мои заявки</h3>
+
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+    <div th:if="${#lists.isEmpty(requests)}" class="alert alert-secondary">
+        У вас пока нет заявок. <a th:href="@{/catalog/request}">Оставить заявку</a>.
+    </div>
+
+    <div class="row row-cols-1 g-3" th:unless="${#lists.isEmpty(requests)}">
+        <div class="col" th:each="request : ${requests}">
+            <div class="card shadow-sm" th:classappend="${request.commentRead == false} ? 'border-primary border-2' : ''">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="fw-bold mb-1" th:text="${request.medicationName}"></h6>
+                            <span th:if="${request.commentRead == false}" class="badge bg-danger mb-1">Новое сообщение</span>
+                            <div>
+                                <span class="text-muted small" th:text="'Количество: ' + ${request.desiredQuantity} + ' шт'"></span>
+                                <span class="text-muted small"
+                                      th:if="${request.comment}" th:text="' · Комментарий: ' + ${request.comment}"></span>
+                            </div>
+                            <div class="text-muted small mt-1"
+                                 th:text="'Дата: ' + ${#temporals.format(request.createdAt, 'dd.MM.yyyy HH:mm')}"></div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-warning text-dark" th:if="${request.status.name() == 'NEW'}">Новая</span>
+                            <span class="badge bg-success" th:if="${request.status.name() == 'APPROVED'}">Одобрена</span>
+                            <span class="badge bg-secondary" th:if="${request.status.name() == 'REJECTED'}">Отклонена</span>
+                            <span class="badge bg-info text-dark" th:if="${request.status.name() == 'CONFIRMED'}">Подтверждена</span>
+                            <span class="badge bg-dark" th:if="${request.status.name() == 'CANCELLED'}">Отменена</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 mt-3">
+                        <button type="button" class="btn btn-sm"
+                                th:classappend="${request.commentRead == false} ? 'btn-warning' : 'btn-save'"
+                                th:onclick="'openChat(' + ${request.id} + ')'">Чат</button>
+                        <form th:if="${request.status.name() == 'NEW'}"
+                              th:action="@{/my-requests/{id}/confirm(id=${request.id})}" method="post" class="mb-0">
+                            <button type="submit" class="btn btn-leak px-3">Подтвердить (рецепт есть)</button>
+                        </form>
+                        <form th:if="${request.status.name() == 'NEW'}"
+                              th:action="@{/my-requests/{id}/cancel(id=${request.id})}" method="post" class="mb-0">
+                            <button type="submit" class="btn btn-delete px-3">Отменить заявку</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/chatWidget :: widget"></div>
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <a th:href="@{/catalog}" class="btn btn-cancel px-3 mb-4">← Назад в каталог</a>
+
+    <h3 class="fw-bold mb-4">
+        Лекарства
+        <span th:if="${disease != null}" th:text="'по болезни «' + ${disease.name} + '»'"></span>
+        <span th:if="${symptom != null}" th:text="'по симптому «' + ${symptom.name} + '»'"></span>
+        <span th:if="${ingredient != null}" th:text="'с веществом «' + ${ingredient.name} + '»'"></span>
+    </h3>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+        <div class="col" th:each="med : ${medicationsPage}">
+            <div class="card h-100 shadow-sm">
+                <img th:src="${med.image != null ? med.image : '/no-photo.jpg'}" class="card-img-fixed"
+                     alt="Фото лекарства">
+                <div class="card-body d-flex flex-column">
+                    <h6 class="fw-bold" th:text="${med.name}"></h6>
+                    <p class="small text-muted" th:text="${med.description}"></p>
+                    <p class="fw-semibold mb-2" th:text="'Цена: ' + ${#numbers.formatDecimal(med.price, 1, 2)} + ' ₽'"></p>
+
+                    <div th:if="${med.inStock}">
+                        <span class="badge bg-success mb-2">В наличии: [[${med.availableQuantity}]] шт</span>
+                    </div>
+                    <div th:unless="${med.inStock}">
+                        <span class="badge bg-secondary mb-2">Нет в наличии</span>
+                    </div>
+
+                    <div class="mt-auto d-flex gap-2">
+                        <a th:href="@{/catalog/medication/{id}(id=${med.id})}"
+                           class="btn btn-edit px-3">Подробнее</a>
+                        <a th:if="${med.inStock}"
+                           th:href="@{/catalog/order(medicationId=${med.id})}"
+                           class="btn btn-save px-3">Заказать</a>
+                        <a th:unless="${med.inStock}" th:href="@{/catalog/request}"
+                           class="btn btn-cancel px-3">Заявка</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav th:if="${medicationsPage != null and medicationsPage.totalPages > 1}" aria-label="Page navigation">
+        <ul class="pagination justify-content-center mt-4">
+            <li th:classappend="${medicationsPage.first} ? 'disabled'">
+                <a class="page-link"
+                   th:href="${baseUrl + '?page=' + (medicationsPage.number - 1) + '&size=' + medicationsPage.size}">‹</a>
+            </li>
+            <li th:each="i : ${#numbers.sequence(0, medicationsPage.totalPages - 1)}"
+                th:classappend="${i == medicationsPage.number} ? 'active'">
+                <a class="page-link" th:text="${i + 1}"
+                   th:href="${baseUrl + '?page=' + i + '&size=' + medicationsPage.size}"></a>
+            </li>
+            <li th:classappend="${medicationsPage.last} ? 'disabled'">
+                <a class="page-link"
+                   th:href="${baseUrl + '?page=' + (medicationsPage.number + 1) + '&size=' + medicationsPage.size}">›</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

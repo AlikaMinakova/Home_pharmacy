@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-1 text-center">Регистрация покупателя</h3>
+                    <p class="text-muted text-center mb-4">Зарегистрируйтесь, чтобы видеть историю заказов и заявок</p>
+
+                    <form th:action="@{/register}" th:object="${registration}" method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Имя <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{name}" placeholder="Ваше имя">
+                            <div class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Телефон <span class="text-danger">*</span></label>
+                            <input type="text" inputmode="tel" class="form-control" th:field="*{phone}"
+                                   placeholder="8 900 123-45-67">
+                            <div class="text-danger" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Пароль <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" th:field="*{password}" placeholder="Минимум 6 символов">
+                            <div class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-save w-100">Зарегистрироваться</button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <span class="small text-muted">Уже есть аккаунт?</span>
+                        <a th:href="@{/login}" class="small">Войти</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

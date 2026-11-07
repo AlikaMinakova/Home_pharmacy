@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="messages">
+    <div class="chat-messages">
+        <div th:if="${#lists.isEmpty(messages)}" class="text-muted small text-center py-3">
+            Сообщений пока нет. Начните общение.
+        </div>
+        <div th:each="m : ${messages}" class="chat-msg"
+             th:classappend="${m.sender == 'PHARMACIST'} ? 'from-pharmacist' : 'from-customer'">
+            <div class="chat-meta">
+                <span class="chat-sender" th:text="${m.sender == 'PHARMACIST'} ? 'Аптекарь' : 'Покупатель'"></span>
+                <span class="chat-time" th:text="${#temporals.format(m.createdAt, 'dd.MM HH:mm')}"></span>
+            </div>
+            <div class="chat-text" th:text="${m.text}"></div>
+        </div>
+    </div>
+    <form class="chat-form" th:action="@{/chat/{id}/send(id=${requestId})}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="text" name="text" class="form-control" placeholder="Сообщение..." autocomplete="off" required>
+        <button type="submit" class="btn btn-save">Отправить</button>
+    </form>
+</div>
+</body>
+</html>

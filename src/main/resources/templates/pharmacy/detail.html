@@ -26,7 +26,7 @@
                    class="btn btn-edit px-4">Редактировать</a>
 
 
-                <form th:action="@{/pharmacies/{id}/delete(id=${pharmacy.medication.id})}"
+                <form th:action="@{/pharmacies/{id}/delete(id=${pharmacy.id})}"
                       method="post" class="d-inline">
                     <button type="submit" class="btn btn-delete px-4">Удалить</button>
                 </form>

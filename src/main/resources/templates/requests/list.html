@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0">Заявки на отсутствующие лекарства</h3>
+        <span class="badge bg-warning text-dark fs-6" th:if="${newCount > 0}">Новых: [[${newCount}]]</span>
+    </div>
+
+    <form th:action="@{/requests}" method="get" class="row g-2 align-items-end bg-light p-3 rounded mb-3">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold mb-1">Поиск</label>
+            <input type="text" name="search" th:value="${#strings.defaultString(search, '')}"
+                   class="form-control" placeholder="Лекарство, имя, телефон">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1">Статус</label>
+            <select name="status" class="form-select">
+                <option value="">Все</option>
+                <option value="NEW" th:selected="${status == 'NEW'}">Новая</option>
+                <option value="APPROVED" th:selected="${status == 'APPROVED'}">Одобрена</option>
+                <option value="REJECTED" th:selected="${status == 'REJECTED'}">Отклонена</option>
+                <option value="CONFIRMED" th:selected="${status == 'CONFIRMED'}">Подтверждена покупателем</option>
+                <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">Отменена покупателем</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold mb-1">Сортировать по</label>
+            <select name="sortBy" class="form-select">
+                <option value="createdAt" th:selected="${sortBy == 'createdAt'}">Дата</option>
+                <option value="medicationName" th:selected="${sortBy == 'medicationName'}">Лекарство</option>
+                <option value="desiredQuantity" th:selected="${sortBy == 'desiredQuantity'}">Количество</option>
+                <option value="customerName" th:selected="${sortBy == 'customerName'}">Имя покупателя</option>
+                <option value="customerPhone" th:selected="${sortBy == 'customerPhone'}">Телефон</option>
+                <option value="status" th:selected="${sortBy == 'status'}">Статус</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1">Направление</label>
+            <select name="sortDir" class="form-select">
+                <option value="desc" th:selected="${sortDir == 'desc'}">По убыванию</option>
+                <option value="asc" th:selected="${sortDir == 'asc'}">По возрастанию</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-save flex-fill">Применить</button>
+            <a th:href="@{/requests}" class="btn btn-cancel">Сброс</a>
+        </div>
+    </form>
+
+    <div th:if="${#lists.isEmpty(requests)}" class="alert alert-secondary">
+        Заявки не найдены.
+    </div>
+
+    <div class="table-responsive" th:unless="${#lists.isEmpty(requests)}">
+        <table class="table table-hover align-middle shadow-sm">
+            <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Лекарство</th>
+                <th>Кол-во</th>
+                <th>Покупатель</th>
+                <th>Телефон</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Чат</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="request : ${requests}"
+                th:classappend="${request.pharmacistRead == false} ? 'table-warning' : ''">
+                <td th:text="${request.id}"></td>
+                <td>
+                    <span th:text="${request.medicationName}"></span>
+                    <span th:if="${request.pharmacistRead == false}" class="badge bg-danger ms-1">Новое сообщение</span>
+                </td>
+                <td th:text="${request.desiredQuantity}"></td>
+                <td th:text="${request.customerName}"></td>
+                <td th:text="${request.customerPhone}"></td>
+                <td th:text="${#temporals.format(request.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
+                <td>
+                    <span class="badge bg-warning text-dark" th:if="${request.status.name() == 'NEW'}">Новая</span>
+                    <span class="badge bg-success" th:if="${request.status.name() == 'APPROVED'}">Одобрена</span>
+                    <span class="badge bg-secondary" th:if="${request.status.name() == 'REJECTED'}">Отклонена</span>
+                    <span class="badge bg-info text-dark" th:if="${request.status.name() == 'CONFIRMED'}">Подтверждена покупателем</span>
+                    <span class="badge bg-dark" th:if="${request.status.name() == 'CANCELLED'}">Отменена покупателем</span>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm"
+                            th:classappend="${request.pharmacistRead == false} ? 'btn-warning' : 'btn-save'"
+                            th:onclick="'openChat(' + ${request.id} + ')'">Чат</button>
+                </td>
+                <td>
+                    <div class="d-flex gap-2"
+                         th:if="${request.status.name() == 'NEW' or request.status.name() == 'CONFIRMED'}">
+                        <form th:action="@{/requests/{id}/approve(id=${request.id})}" method="post">
+                            <button type="submit" class="btn btn-leak px-3">Одобрить</button>
+                        </form>
+                        <form th:action="@{/requests/{id}/reject(id=${request.id})}" method="post">
+                            <button type="submit" class="btn btn-delete px-3">Отклонить</button>
+                        </form>
+                    </div>
+                    <span th:if="${request.status.name() == 'APPROVED' or request.status.name() == 'REJECTED' or request.status.name() == 'CANCELLED'}"
+                          class="text-muted small">—</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="fragments/chatWidget :: widget"></div>
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

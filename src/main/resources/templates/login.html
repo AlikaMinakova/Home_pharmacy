@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-4 text-center">Вход</h3>
+
+                    <div class="alert alert-success" th:if="${successMessage}">
+                        [[${successMessage}]]
+                    </div>
+
+                    <div class="alert alert-danger" th:if="${param.error}">
+                        Неверный логин или пароль.
+                    </div>
+
+                    <form th:action="@{/login}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Телефон</label>
+                            <input type="text" name="username" class="form-control" placeholder="8 900 123-45-67" required autofocus>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Пароль</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-save w-100">Войти</button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <span class="small text-muted">Нет аккаунта?</span>
+                        <a th:href="@{/register}" class="small">Зарегистрироваться</a>
+                    </div>
+
+                    <div class="text-center mt-1">
+                        <a th:href="@{/catalog}" class="small text-muted">Вернуться в каталог</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

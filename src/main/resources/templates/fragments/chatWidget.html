@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="widget">
+
+    <div id="chatPanel" class="chat-panel d-none">
+        <div class="chat-panel-header">
+            <span class="fw-semibold">Чат по заявке #<span id="chatTitle"></span></span>
+            <button type="button" class="btn-close btn-close-white" onclick="closeChat()"></button>
+        </div>
+        <div id="chatBody" class="chat-panel-body"></div>
+    </div>
+
+    <style>
+        .chat-panel {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 340px;
+            max-width: calc(100vw - 40px);
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            z-index: 1050;
+            overflow: hidden;
+        }
+        .chat-panel.d-none { display: none; }
+        .chat-panel-header {
+            background: #0b5ed7;
+            color: #fff;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-panel-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            background: #f8f9fa;
+        }
+        .chat-msg {
+            max-width: 85%;
+            margin-bottom: 8px;
+            padding: 7px 10px;
+            border-radius: 10px;
+            clear: both;
+        }
+        .chat-msg .chat-meta {
+            font-size: 11px;
+            opacity: 0.75;
+            margin-bottom: 2px;
+        }
+        .chat-msg .chat-time { margin-left: 6px; }
+        .chat-msg .chat-text { word-wrap: break-word; }
+        .chat-msg.from-customer {
+            float: left;
+            background: #e9ecef;
+        }
+        .chat-msg.from-pharmacist {
+            float: right;
+            background: #cfe2ff;
+        }
+        .chat-form {
+            display: flex;
+            gap: 6px;
+            padding: 10px;
+            border-top: 1px solid #dee2e6;
+            background: #fff;
+        }
+    </style>
+
+    <script>
+        let currentChatRequestId = null;
+
+        async function openChat(id) {
+            currentChatRequestId = id;
+            document.getElementById('chatTitle').textContent = id;
+            const panel = document.getElementById('chatPanel');
+            panel.classList.remove('d-none');
+            const res = await fetch('/chat/' + id);
+            if (!res.ok) return;
+            const html = await res.text();
+            document.getElementById('chatBody').innerHTML = html;
+            const box = document.querySelector('#chatBody .chat-messages');
+            if (box) box.scrollTop = box.scrollHeight;
+            const input = document.querySelector('#chatBody .chat-form input[name=text]');
+            if (input) input.focus();
+        }
+
+        function closeChat() {
+            currentChatRequestId = null;
+            document.getElementById('chatPanel').classList.add('d-none');
+        }
+
+        document.addEventListener('submit', async function (e) {
+            const f = e.target;
+            if (f.classList && f.classList.contains('chat-form')) {
+                e.preventDefault();
+                const input = f.querySelector('input[name=text]');
+                const text = input ? input.value.trim() : '';
+                if (!text) return;
+                await fetch(f.action, { method: 'POST', body: new FormData(f) });
+                if (input) input.value = '';
+                if (currentChatRequestId) openChat(currentChatRequestId);
+            }
+        });
+    </script>
+
+</div>
+</body>
+</html>

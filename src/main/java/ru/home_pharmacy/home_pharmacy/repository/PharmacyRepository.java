@@ -34,11 +34,11 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
     @Query("SELECT p FROM Pharmacy p WHERE p.purchaseDate >= :startDate")
     List<Pharmacy> findBoughtAfter(@Param("startDate") LocalDate startDate);
 
-    // Партии с остатком срока годности до 7 дней (не включая уже просроченные)
-    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate > :startDate AND p.expirationDate <= :endDate")
+    // Партии с остатком срока годности до 7 дней (не включая уже просроченные ранее, но включая истекающие сегодня)
+    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate >= :startDate AND p.expirationDate <= :endDate")
     List<Pharmacy> findExpiringSoon(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate > :startDate AND p.expirationDate <= :endDate")
+    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate >= :startDate AND p.expirationDate <= :endDate")
     Page<Pharmacy> findExpiringSoonPage(@Param("startDate") LocalDate startDate,
                                         @Param("endDate") LocalDate endDate,
                                         Pageable pageable);

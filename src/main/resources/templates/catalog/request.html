@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <a th:href="@{/catalog}" class="btn btn-cancel px-3 mb-4">← Назад в каталог</a>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-1">Заявка на лекарство</h3>
+                    <p class="text-muted mb-4">Не нашли нужное лекарство? Оставьте заявку — учтём её при следующей поставке.</p>
+
+                    <form th:action="@{/catalog/request}" th:object="${request}" method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Название лекарства <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{medicationName}"
+                                   placeholder="Например, Парацетамол 500 мг">
+                            <div class="text-danger" th:if="${#fields.hasErrors('medicationName')}" th:errors="*{medicationName}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Желаемое количество <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" th:field="*{desiredQuantity}" min="1">
+                            <div class="text-danger" th:if="${#fields.hasErrors('desiredQuantity')}" th:errors="*{desiredQuantity}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Комментарий</label>
+                            <textarea class="form-control" rows="3" th:field="*{comment}"
+                                      placeholder="Дозировка, форма выпуска, иная информация"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Ваше имя <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{customerName}"
+                                   th:attr="readonly=${isCustomer ? 'readonly' : null}">
+                            <div class="text-danger" th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Телефон <span class="text-danger">*</span></label>
+                            <input type="text" inputmode="tel" class="form-control" th:field="*{customerPhone}"
+                                   placeholder="Номер телефона, например 8 900 123-45-67"
+                                   th:attr="readonly=${isCustomer ? 'readonly' : null}">
+                            <div class="text-danger" th:if="${#fields.hasErrors('customerPhone')}" th:errors="*{customerPhone}"></div>
+                            <p class="small text-muted mt-1" th:if="${isCustomer}">Номер привязан к вашему аккаунту и не может быть изменён.</p>
+                        </div>
+
+                        <button type="submit" class="btn btn-save w-100">Отправить заявку</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

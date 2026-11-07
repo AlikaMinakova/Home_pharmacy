@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <a th:href="@{/pharmacies}" class="btn btn-cancel px-3 mb-4">← Аптечка</a>
+
+    <h3 class="fw-bold mb-4">Истекает срок (≤ 7 дней)</h3>
+
+    <div th:if="${pharmacyPage != null and pharmacyPage.isEmpty()}" class="alert alert-secondary">
+        Нет партий с истекающим сроком годности.
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5" th:unless="${pharmacyPage != null and pharmacyPage.isEmpty()}">
+        <div class="col" th:each="pharmacy : ${pharmacyPage}">
+            <div class="card h-100 shadow-sm">
+                <img th:if="${pharmacy.medication.image != null}"
+                     th:src="${pharmacy.medication.image}"
+                     class="card-img-fixed"
+                     alt="лекарство">
+                <div class="card-body">
+                    <p class="text-warning small fw-semibold">Истекает срок</p>
+                    <h6 class="fw-bold">
+                        <a th:href="@{/pharmacies/detail/{id}(id=${pharmacy.id})}"
+                           th:text="${pharmacy.medication.name}"
+                           class="text-decoration-none text-dark"></a>
+                    </h6>
+                    <ul class="list-unstyled small text-muted">
+                        <li th:text="'Цена: ' + ${pharmacy.retailPrice} + ' ₽'"></li>
+                        <li th:text="'Дата покупки: ' + ${pharmacy.purchaseDate}"></li>
+                        <li th:text="'Срок годности: ' + ${pharmacy.expirationDate}"></li>
+                        <li th:text="'Количество: ' + ${pharmacy.quantity} + ' шт'"></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav th:if="${pharmacyPage != null and pharmacyPage.totalPages > 1}" aria-label="Page navigation">
+        <ul class="pagination justify-content-center mt-4">
+            <li th:classappend="${pharmacyPage.first} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/pharmacies/expiring(page=${pharmacyPage.number - 1}, size=${pharmacyPage.size})}">‹</a>
+            </li>
+            <li th:if="${pharmacyPage.number > 2}">
+                <a class="page-link"
+                   th:href="@{/pharmacies/expiring(page=0, size=${pharmacyPage.size})}">1</a>
+            </li>
+            <li th:if="${pharmacyPage.number > 3}">
+                <span class="page-link">...</span>
+            </li>
+            <li th:each="i : ${#numbers.sequence(pharmacyPage.number-2 > 0 ? pharmacyPage.number-2 : 0,
+                                             pharmacyPage.number+2 < pharmacyPage.totalPages-1 ? pharmacyPage.number+2 : pharmacyPage.totalPages-1)}"
+                th:classappend="${i == pharmacyPage.number} ? 'active'">
+                <a class="page-link"
+                   th:href="@{/pharmacies/expiring(page=${i}, size=${pharmacyPage.size})}"
+                   th:text="${i+1}"></a>
+            </li>
+            <li th:if="${pharmacyPage.number < pharmacyPage.totalPages-4}">
+                <span class="page-link">...</span>
+            </li>
+            <li th:if="${pharmacyPage.number < pharmacyPage.totalPages-3}">
+                <a class="page-link"
+                   th:href="@{/pharmacies/expiring(page=${pharmacyPage.totalPages-1}, size=${pharmacyPage.size})}"
+                   th:text="${pharmacyPage.totalPages}"></a>
+            </li>
+            <li th:classappend="${pharmacyPage.last} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/pharmacies/expiring(page=${pharmacyPage.number + 1}, size=${pharmacyPage.size})}">›</a>
+            </li>
+        </ul>
+    </nav>
+
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

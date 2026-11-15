@@ -87,10 +87,6 @@
                 <a class="nav-link" th:href="@{/catalog/symptoms}">По симптомам</a>
                 <a class="nav-link" th:href="@{/catalog/ingredients}">По веществам</a>
                 <a class="nav-link" th:href="@{/catalog/request}">Оставить заявку</a>
-                <a class="nav-link" th:href="@{/cart}">Корзина
-                    <span th:if="${cartCount != null and cartCount > 0}"
-                          class="badge bg-primary rounded-pill">[[${cartCount}]]</span>
-                </a>
             </div>
 
             <!-- Меню покупателя (авторизованный) -->

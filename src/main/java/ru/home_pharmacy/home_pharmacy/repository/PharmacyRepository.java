@@ -21,26 +21,26 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
             Pageable pageable);
 
     // Актуальные партии: есть остаток и срок ещё не истёк
-    @Query("SELECT p FROM Pharmacy p WHERE p.quantity > 0 AND p.expirationDate > :today")
+    @Query("SELECT p FROM Pharmacy p WHERE p.quantity > 0 AND p.expirationDate >= :today")
     Page<Pharmacy> findAllAvailable(@Param("today") LocalDate today, Pageable pageable);
 
     // Все неистёкшие партии на складе, включая с нулевым остатком (чтобы показывать «нет в наличии»)
-    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate > :today")
+    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate >= :today")
     Page<Pharmacy> findAllOnStock(@Param("today") LocalDate today, Pageable pageable);
 
     // Все неистёкшие партии списком (для агрегирования по лекарству)
-    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate > :today")
+    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate >= :today")
     List<Pharmacy> findAllOnStockList(@Param("today") LocalDate today);
 
     @Query("SELECT p FROM Pharmacy p JOIN p.medication m " +
-            "WHERE p.expirationDate > :today " +
+            "WHERE p.expirationDate >= :today " +
             "AND LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Pharmacy> findOnStockByMedicationNameContaining(@Param("keyword") String keyword,
                                                          @Param("today") LocalDate today,
                                                          Pageable pageable);
 
     @Query("SELECT p FROM Pharmacy p JOIN p.medication m " +
-            "WHERE p.quantity > 0 AND p.expirationDate > :today " +
+            "WHERE p.quantity > 0 AND p.expirationDate >= :today " +
             "AND LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Pharmacy> findAvailableByMedicationNameContaining(@Param("keyword") String keyword,
                                                            @Param("today") LocalDate today,
@@ -58,10 +58,10 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
                                         @Param("endDate") LocalDate endDate,
                                         Pageable pageable);
 
-    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate <= :now")
+    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate < :now")
     Page<Pharmacy> findExpired(@Param("now") LocalDate now, Pageable pageable);
 
-    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate <= :now")
+    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate < :now")
     List<Pharmacy> findAllExpired(@Param("now") LocalDate now);
 
     @Query("SELECT p FROM Pharmacy p " +
@@ -72,11 +72,11 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
     Optional<Pharmacy> findWithMedicationById(@Param("id") Long id);
 
     @Query("SELECT COALESCE(SUM(p.quantity), 0) FROM Pharmacy p " +
-            "WHERE p.medication.id = :medicationId AND p.expirationDate > :today")
+            "WHERE p.medication.id = :medicationId AND p.expirationDate >= :today")
     Long sumAvailableQuantity(@Param("medicationId") Long medicationId, @Param("today") LocalDate today);
 
     @Query("SELECT p FROM Pharmacy p " +
-            "WHERE p.medication.id = :medicationId AND p.quantity > 0 AND p.expirationDate > :today " +
+            "WHERE p.medication.id = :medicationId AND p.quantity > 0 AND p.expirationDate >= :today " +
             "ORDER BY p.expirationDate ASC, p.purchaseDate ASC")
     List<Pharmacy> findAvailableBatches(@Param("medicationId") Long medicationId, @Param("today") LocalDate today);
 }

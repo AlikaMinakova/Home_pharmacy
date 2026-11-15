@@ -6,8 +6,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import ru.home_pharmacy.home_pharmacy.component.Cart;
 import ru.home_pharmacy.home_pharmacy.dto.FavoriteDto;
+import ru.home_pharmacy.home_pharmacy.service.CartService;
 import ru.home_pharmacy.home_pharmacy.service.FavoriteService;
 import ru.home_pharmacy.home_pharmacy.service.RequestService;
 
@@ -24,7 +24,7 @@ public class CustomerNotificationAdvice {
 
     private final RequestService requestService;
     private final FavoriteService favoriteService;
-    private final Cart cart;
+    private final CartService cartService;
 
     @ModelAttribute
     public void addGlobalAttributes(Model model) {
@@ -32,7 +32,7 @@ public class CustomerNotificationAdvice {
         boolean authenticated = auth != null && auth.isAuthenticated()
                 && auth.getName() != null && !"anonymousUser".equals(auth.getName());
 
-        model.addAttribute("cartCount", cart.totalCount());
+        model.addAttribute("cartCount", 0);
 
         if (!authenticated) {
             model.addAttribute("unreadRequests", 0L);
@@ -52,6 +52,7 @@ public class CustomerNotificationAdvice {
         }
 
         String username = auth.getName();
+        model.addAttribute("cartCount", cartService.getCartCount(username));
         model.addAttribute("unreadRequests", requestService.countUnread(username));
         model.addAttribute("pharmacistUnread", 0L);
         // избранные товары, которые снова появились в наличии

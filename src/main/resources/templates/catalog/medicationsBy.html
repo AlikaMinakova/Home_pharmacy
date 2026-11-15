@@ -39,10 +39,12 @@
                     <div class="mt-auto d-flex gap-2 flex-wrap">
                         <a th:href="@{/catalog/medication/{id}(id=${med.id})}"
                            class="btn btn-edit px-3">Подробнее</a>
-                        <form th:if="${med.inStock}"
+                        <form sec:authorize="hasRole('CUSTOMER')" th:if="${med.inStock}"
                               th:action="@{/cart/add/{id}(id=${med.id})}" method="post" class="mb-0">
                             <button type="submit" class="btn btn-save px-3">В корзину</button>
                         </form>
+                        <a sec:authorize="!isAuthenticated()" th:if="${med.inStock}"
+                           th:href="@{/login}" class="btn btn-cancel px-3">Войти</a>
                         <a th:unless="${med.inStock}" th:href="@{/catalog/request}"
                            class="btn btn-cancel px-3">Заявка</a>
                     </div>

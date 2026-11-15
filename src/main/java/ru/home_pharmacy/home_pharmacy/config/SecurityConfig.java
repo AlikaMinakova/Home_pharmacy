@@ -34,12 +34,10 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // оформление заказа из корзины и заявки доступны только покупателю
-                        .requestMatchers("/cart/checkout").hasRole("CUSTOMER")
+                        .requestMatchers("/cart", "/cart/**").hasRole("CUSTOMER")
                         .requestMatchers("/catalog/request").hasRole("CUSTOMER")
                         // избранное доступно только покупателю
                         .requestMatchers("/favorites", "/favorites/**").hasRole("CUSTOMER")
-                        // корзина сессионная — доступна и гостю (до авторизации)
-                        .requestMatchers("/cart", "/cart/add/**", "/cart/update/**", "/cart/remove/**").permitAll()
                         // публичный доступ: вход, регистрация и просмотр каталога
                         .requestMatchers("/", "/login", "/register", "/catalog/**", "/uploads/**", "/no-photo.jpg").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", "/error").permitAll()

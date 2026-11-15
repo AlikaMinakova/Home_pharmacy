@@ -28,7 +28,9 @@
                     <img th:if="${expiring.medication.image != null}"
                          th:src="${expiring.medication.image}"
                          th:classappend="${expiring.quantity != null and expiring.quantity > 0} ? '' : 'out-of-stock'"
-                         class="card-img-fixed" alt="лекарство">
+                         class="w-100"
+                         style="height:130px; object-fit:contain; background:#fff; padding:8px;"
+                         alt="лекарство">
                     <span th:if="${expiring.quantity == null or expiring.quantity <= 0}"
                           class="out-of-stock-overlay">Нет в наличии</span>
                 </div>
@@ -87,14 +89,16 @@
                        class="text-success small fw-semibold">На складе</p>
                     <p th:unless="${stock.totalQuantity != null and stock.totalQuantity > 0}"
                        class="text-secondary small fw-semibold">Нет в наличии</p>
-                    <h6 class="fw-bold" th:text="${stock.name}"></h6>
+                    <h6 class="fw-bold">
+                        <a th:href="@{/pharmacies/detail/{id}(id=${stock.batchId})}"
+                           th:text="${stock.name}"
+                           class="text-decoration-none text-dark"></a>
+                    </h6>
                     <ul class="list-unstyled small text-muted">
                         <li th:text="'Цена: ' + ${#numbers.formatDecimal(stock.price, 1, 2)} + ' ₽'"></li>
                         <li th:if="${stock.totalQuantity != null and stock.totalQuantity > 0}"
                             th:text="'Всего на складе: ' + ${stock.totalQuantity} + ' шт'"></li>
                     </ul>
-                    <a th:href="@{/catalog/medication/{id}(id=${stock.medicationId})}"
-                       class="btn btn-edit px-3">Карточка</a>
                 </div>
             </div>
         </div>

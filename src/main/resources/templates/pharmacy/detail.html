@@ -76,7 +76,8 @@
             <!-- График изменения цены -->
             <div class="card p-3 mt-4 shadow-sm" th:if="${priceHistory != null and !priceHistory.isEmpty()}">
                 <h6 class="fw-bold">История изменения цены</h6>
-                <canvas id="priceChart" height="80"></canvas>
+                <canvas id="priceChart" width="600" height="200"
+                        style="width:600px; height:200px; max-width:100%;"></canvas>
             </div>
         </div>
     </div>
@@ -112,7 +113,8 @@
                 }]
             },
             options: {
-                responsive: true,
+                responsive: false,
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
                     y: {

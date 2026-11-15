@@ -79,11 +79,17 @@ public class PharmacyService {
                     .toList();
         }
 
+        // Сортируем партии по дате покупки (новые сверху), чтобы batchId указывал на самую свежую
+        batches = new ArrayList<>(batches);
+        batches.sort(Comparator.comparing(Pharmacy::getPurchaseDate,
+                Comparator.nullsLast(Comparator.reverseOrder())));
+
         Map<Long, StockDto> grouped = new LinkedHashMap<>();
         for (Pharmacy batch : batches) {
             Medication medication = batch.getMedication();
             StockDto dto = grouped.computeIfAbsent(medication.getId(), id -> StockDto.builder()
                     .medicationId(id)
+                    .batchId(batch.getId())
                     .name(medication.getName())
                     .image(medication.getImage())
                     .price(medication.getPrice() != null ? medication.getPrice() : BigDecimal.ZERO)

@@ -24,6 +24,21 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
     @Query("SELECT p FROM Pharmacy p WHERE p.quantity > 0 AND p.expirationDate > :today")
     Page<Pharmacy> findAllAvailable(@Param("today") LocalDate today, Pageable pageable);
 
+    // Все неистёкшие партии на складе, включая с нулевым остатком (чтобы показывать «нет в наличии»)
+    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate > :today")
+    Page<Pharmacy> findAllOnStock(@Param("today") LocalDate today, Pageable pageable);
+
+    // Все неистёкшие партии списком (для агрегирования по лекарству)
+    @Query("SELECT p FROM Pharmacy p WHERE p.expirationDate > :today")
+    List<Pharmacy> findAllOnStockList(@Param("today") LocalDate today);
+
+    @Query("SELECT p FROM Pharmacy p JOIN p.medication m " +
+            "WHERE p.expirationDate > :today " +
+            "AND LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Pharmacy> findOnStockByMedicationNameContaining(@Param("keyword") String keyword,
+                                                         @Param("today") LocalDate today,
+                                                         Pageable pageable);
+
     @Query("SELECT p FROM Pharmacy p JOIN p.medication m " +
             "WHERE p.quantity > 0 AND p.expirationDate > :today " +
             "AND LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")

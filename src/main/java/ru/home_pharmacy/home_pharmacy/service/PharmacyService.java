@@ -4,6 +4,7 @@ package ru.home_pharmacy.home_pharmacy.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,6 +15,7 @@ import ru.home_pharmacy.home_pharmacy.dto.PharmacyOverviewResponse;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyDto;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyHistoryItem;
 import ru.home_pharmacy.home_pharmacy.dto.ArchiveDto;
+import ru.home_pharmacy.home_pharmacy.dto.StockDto;
 import ru.home_pharmacy.home_pharmacy.entity.CustomerOrder;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
@@ -30,7 +32,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,26 +65,45 @@ public class PharmacyService {
 
     @Transactional(readOnly = true)
     public PharmacyOverviewResponse getPharmacyOverview(int page, int size, String keyword, String sort) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort).ascending());
-
+        Pageable pageable = PageRequest.of(page, size);
         LocalDate today = LocalDate.now();
 
-        // Только актуальные партии: есть остаток и срок не истёк.
-        // Каждая поставка — отдельный товар со своей ценой, датой и количеством.
-        Page<PharmacyDto> all;
+        // Сводные остатки: одна карточка на лекарство с суммарным количеством.
+        // Партии с нулевым остатком тоже учитываются (лекарство остаётся, но «нет в наличии»).
+        List<Pharmacy> batches = pharmacyRepository.findAllOnStockList(today);
         if (keyword != null && !keyword.isBlank()) {
-            all = pharmacyRepository.findAvailableByMedicationNameContaining(keyword, today, pageable)
-                    .map(this::toResponse);
-        } else {
-            all = pharmacyRepository.findAllAvailable(today, pageable)
-                    .map(this::toResponse);
+            String lower = keyword.trim().toLowerCase();
+            batches = batches.stream()
+                    .filter(b -> b.getMedication().getName() != null
+                            && b.getMedication().getName().toLowerCase().contains(lower))
+                    .toList();
         }
 
-        // Недавно подтверждённые заказы покупателей (последние 4)
-        List<CustomerOrder> recentlyBought = orderRepository.findAllByStatusOrderByCreatedAtDesc(OrderStatus.CONFIRMED)
-                .stream()
-                .limit(4)
-                .toList();
+        Map<Long, StockDto> grouped = new LinkedHashMap<>();
+        for (Pharmacy batch : batches) {
+            Medication medication = batch.getMedication();
+            StockDto dto = grouped.computeIfAbsent(medication.getId(), id -> StockDto.builder()
+                    .medicationId(id)
+                    .name(medication.getName())
+                    .image(medication.getImage())
+                    .price(medication.getPrice() != null ? medication.getPrice() : BigDecimal.ZERO)
+                    .totalQuantity(0L)
+                    .build());
+            dto.setTotalQuantity(dto.getTotalQuantity()
+                    + (batch.getQuantity() != null ? batch.getQuantity() : 0));
+        }
+
+        List<StockDto> stockList = new ArrayList<>(grouped.values());
+        String sortField = sort == null ? "name" : sort;
+        Comparator<StockDto> comparator = "quantity".equals(sortField)
+                ? Comparator.comparing(StockDto::getTotalQuantity)
+                : Comparator.comparing(StockDto::getName, Comparator.nullsLast(Comparator.naturalOrder()));
+        stockList.sort(comparator);
+
+        int total = stockList.size();
+        int from = Math.min(page * size, total);
+        int to = Math.min(from + size, total);
+        Page<StockDto> all = new PageImpl<>(stockList.subList(from, to), pageable, total);
 
         List<PharmacyDto> expiringSoon = pharmacyRepository.findExpiringSoon(LocalDate.now(), LocalDate.now().plusDays(7))
                 .stream()
@@ -90,7 +113,6 @@ public class PharmacyService {
 
         return PharmacyOverviewResponse.builder()
                 .all(all)
-                .recentlyBought(recentlyBought)
                 .expiringSoon(expiringSoon)
                 .build();
     }
@@ -192,7 +214,7 @@ public class PharmacyService {
     }
 
     /**
-     * Единая история поступлений: активные партии («в аптечке») + списанные
+     * Единая история поступлений: активные партии («на складе») + списанные
      * и удалённые (архив). Отсортированы по дате по убыванию.
      */
     @Transactional(readOnly = true)

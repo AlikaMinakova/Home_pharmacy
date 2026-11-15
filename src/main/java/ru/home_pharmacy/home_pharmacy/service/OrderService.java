@@ -5,6 +5,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.home_pharmacy.home_pharmacy.dto.CartCheckoutDto;
 import ru.home_pharmacy.home_pharmacy.dto.OrderDto;
 import ru.home_pharmacy.home_pharmacy.entity.CustomerOrder;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
@@ -19,8 +20,10 @@ import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +61,46 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<CustomerOrder> getOrdersByPhone(String customerPhone) {
         return orderRepository.findAllByCustomerPhoneOrderByCreatedAtDesc(customerPhone);
+    }
+
+    /**
+     * Создаёт заказ из нескольких позиций корзины: по каждой позиции формируется
+     * отдельная строка заказа с общим идентификатором группы {@code orderGroup}.
+     * Так «Мои заказы» могут сгруппировать одну корзину в один заказ покупателя.
+     */
+    public List<CustomerOrder> createOrdersFromCart(Map<Long, Integer> items, CartCheckoutDto dto) {
+        String group = "G-" + System.currentTimeMillis() + "-" + ThreadLocalRandom.current().nextInt(1000, 9999);
+        String customerName = dto.getCustomerName().trim();
+        String customerPhone = PhoneUtils.normalize(dto.getCustomerPhone());
+        List<CustomerOrder> created = new ArrayList<>();
+        for (Map.Entry<Long, Integer> entry : items.entrySet()) {
+            Medication medication = medicationRepository.findById(entry.getKey())
+                    .orElseThrow(() -> new RuntimeException("Лекарство не найдено: " + entry.getKey()));
+            created.add(orderRepository.save(CustomerOrder.builder()
+                    .medication(medication)
+                    .quantity(entry.getValue())
+                    .customerName(customerName)
+                    .customerPhone(customerPhone)
+                    .status(OrderStatus.NEW)
+                    .orderGroup(group)
+                    .createdAt(LocalDateTime.now())
+                    .build()));
+        }
+        return created;
+    }
+
+    /**
+     * Заказы покупателя, сгруппированные по заказу из корзины.
+     * Позиции одной корзины объединяются под общим ключом (orderGroup).
+     */
+    @Transactional(readOnly = true)
+    public Map<String, List<CustomerOrder>> getOrdersGroupedByPhone(String customerPhone) {
+        Map<String, List<CustomerOrder>> grouped = new LinkedHashMap<>();
+        for (CustomerOrder order : orderRepository.findAllByCustomerPhoneOrderByCreatedAtDesc(customerPhone)) {
+            String key = order.getOrderGroup() != null ? order.getOrderGroup() : "single-" + order.getId();
+            grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(order);
+        }
+        return grouped;
     }
 
     @Transactional(readOnly = true)

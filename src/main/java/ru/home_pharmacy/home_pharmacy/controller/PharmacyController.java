@@ -10,6 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.dto.PharmacyDto;
+import ru.home_pharmacy.home_pharmacy.service.CatalogService;
 import ru.home_pharmacy.home_pharmacy.service.MedicationService;
 import ru.home_pharmacy.home_pharmacy.service.PharmacyService;
 
@@ -20,13 +21,14 @@ public class PharmacyController {
 
     private final PharmacyService pharmacyService;
     private final MedicationService medicationService;
+    private final CatalogService catalogService;
 
     // список лекарств
     @GetMapping
     public String listMedications(@RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "8") int size,
                                   @RequestParam(required = false) String keyword,
-                                  @RequestParam(defaultValue = "expirationDate") String sort,
+                                  @RequestParam(defaultValue = "name") String sort,
                                   Model model) {
         model.addAttribute("pharmacyPage", pharmacyService.getPharmacyOverview(page, size, keyword, sort));
         model.addAttribute("keyword", keyword);
@@ -80,7 +82,7 @@ public class PharmacyController {
 
         model.addAttribute("pharmacy", pharmacy);
         model.addAttribute("medication", medication);
-
+        model.addAttribute("priceHistory", catalogService.getPriceHistory(medication.getId()));
         return "pharmacy/detail";
     }
 

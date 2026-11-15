@@ -14,10 +14,13 @@ import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.service.ActiveIngredientService;
+import ru.home_pharmacy.home_pharmacy.service.CatalogService;
 import ru.home_pharmacy.home_pharmacy.service.DiseaseService;
 import ru.home_pharmacy.home_pharmacy.service.MedicationService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -31,6 +34,8 @@ public class MedicationController {
     private final DiseaseService diseaseService;
     @Autowired
     private final ActiveIngredientService activeIngredientService;
+    @Autowired
+    private final CatalogService catalogService;
 
     @GetMapping
     public String listMedications(@RequestParam(defaultValue = "0") int page,
@@ -46,6 +51,13 @@ public class MedicationController {
         }
         model.addAttribute("medicationsPage", medicationsPage);
         model.addAttribute("currentName", name);
+
+        // остатки на складе для индикации «в наличии / нет в наличии»
+        Map<Long, Long> availability = new HashMap<>();
+        for (MedicationDto med : medicationsPage.getContent()) {
+            availability.put(med.getId(), catalogService.getAvailableQuantity(med.getId()));
+        }
+        model.addAttribute("availability", availability);
         return "medication/list";
     }
 

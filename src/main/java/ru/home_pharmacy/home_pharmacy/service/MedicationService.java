@@ -15,15 +15,18 @@ import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
 import ru.home_pharmacy.home_pharmacy.entity.ActiveIngredient;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
+import ru.home_pharmacy.home_pharmacy.entity.PriceHistory;
 import ru.home_pharmacy.home_pharmacy.repository.ActiveIngredientRepository;
 import ru.home_pharmacy.home_pharmacy.repository.ArchiveRepository;
 import ru.home_pharmacy.home_pharmacy.repository.CustomerOrderRepository;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
+import ru.home_pharmacy.home_pharmacy.repository.PriceHistoryRepository;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -38,6 +41,7 @@ public class MedicationService {
     private final ActiveIngredientRepository activeIngredientRepository;
     private final ArchiveRepository archiveRepository;
     private final CustomerOrderRepository orderRepository;
+    private final PriceHistoryRepository priceHistoryRepository;
 
     public List<MedicationDto> getAll() {
         return medicationRepository.findAll()
@@ -84,19 +88,38 @@ public class MedicationService {
         } else {
             medication.setImage("/no-photo.jpg");
         }
-        medicationRepository.save(medication);
+        Medication saved = medicationRepository.save(medication);
+        recordPriceChange(saved, saved.getPrice());
     }
 
     @Transactional
     public void update(Long id, MedicationDto medicationDto, MultipartFile file) {
         Optional<Medication> medication = medicationRepository.findById(id);
         if (medication.isPresent()) {
+            BigDecimal oldPrice = medication.get().getPrice();
             fillMedicationFromRequest(medicationDto, medication.get());
             if (file != null && !file.isEmpty()) {
                 medication.get().setImage(uploadImage(file));
             }
+            BigDecimal newPrice = medication.get().getPrice();
             medicationRepository.save(medication.get());
+            // фиксируем изменение цены в истории для графика покупателя
+            if (!Objects.equals(oldPrice, newPrice)) {
+                recordPriceChange(medication.get(), newPrice);
+            }
         }
+    }
+
+    /** Фиксирует текущую цену лекарства в истории изменения цен. */
+    private void recordPriceChange(Medication medication, BigDecimal price) {
+        if (price == null) {
+            return;
+        }
+        priceHistoryRepository.save(PriceHistory.builder()
+                .medication(medication)
+                .price(price)
+                .changedAt(LocalDate.now())
+                .build());
     }
 
     @Transactional(readOnly = true)
@@ -119,7 +142,7 @@ public class MedicationService {
         // Удалить зависимые записи (FK): архив и заказы покупателей
         archiveRepository.deleteByMedication_Id(id);
         orderRepository.deleteByMedication_Id(id);
-        // Партии в аптечке удалятся каскадно (orphanRemoval)
+        // Партии на складе удалятся каскадно (orphanRemoval)
         medicationRepository.delete(medication);
     }
 

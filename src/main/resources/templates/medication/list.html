@@ -20,8 +20,13 @@
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
         <div class="col" th:each="med : ${medicationsPage}">
             <div class="card h-100 shadow-sm">
-                <img th:src="${med.image != null ? med.image : '/no-photo.jpg'}" class="card-img-fixed"
-                     alt="Фото лекарства">
+                <div class="position-relative">
+                    <img th:src="${med.image != null ? med.image : '/no-photo.jpg'}"
+                         th:classappend="${availability[med.id] != null and availability[med.id] > 0} ? '' : 'out-of-stock'"
+                         class="card-img-fixed" alt="Фото лекарства">
+                    <span th:if="${availability[med.id] == null or availability[med.id] <= 0}"
+                          class="out-of-stock-overlay">Нет в наличии</span>
+                </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2">
                         <h6 class="fw-bold mb-0" th:text="${med.name}"></h6>
@@ -30,6 +35,13 @@
                     <p class="small text-muted mt-1" th:text="${med.description}"></p>
                     <p class="fw-semibold" th:if="${med.price != null}"
                        th:text="'Цена: ' + ${#numbers.formatDecimal(med.price, 1, 2)} + ' ₽'"></p>
+
+                    <div th:if="${availability[med.id] != null and availability[med.id] > 0}">
+                        <span class="badge bg-success mb-2">В наличии: [[${availability[med.id]}]] шт</span>
+                    </div>
+                    <div th:unless="${availability[med.id] != null and availability[med.id] > 0}">
+                        <span class="badge bg-secondary mb-2">Нет в наличии</span>
+                    </div>
 
                     <!-- Кнопки -->
                     <div class="d-flex gap-2">

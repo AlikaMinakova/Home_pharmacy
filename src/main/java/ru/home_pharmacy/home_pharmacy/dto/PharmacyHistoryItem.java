@@ -25,7 +25,7 @@ public class PharmacyHistoryItem {
     private LocalDate expirationDate;
     private LocalDate purchaseDate;
 
-    /** ACTIVE — в аптечке, WRITTEN_OFF — списано, DELETED — удалено вручную. */
+    /** ACTIVE — на складе, WRITTEN_OFF — списано, DELETED — удалено вручную. */
     private String status;
 
     /** Дата для сортировки (покупка/поступление или дата списания/удаления). */

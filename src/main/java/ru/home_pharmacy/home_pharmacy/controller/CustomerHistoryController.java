@@ -21,7 +21,7 @@ public class CustomerHistoryController {
 
     @GetMapping("/my-orders")
     public String myOrders(@AuthenticationPrincipal UserDetails principal, Model model) {
-        model.addAttribute("orders", orderService.getOrdersByPhone(principal.getUsername()));
+        model.addAttribute("orders", orderService.getOrdersGroupedByPhone(principal.getUsername()));
         return "my/orders";
     }
 

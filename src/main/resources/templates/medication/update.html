@@ -9,8 +9,9 @@
 <div class="container my-5">
     <h3 class="fw-bold mb-4">Обновить лекарство</h3>
 
-    <form th:action="@{/medication/{id}(id=${id})}"
+    <form th:action="@{/medication/{id}(id=${medication.id})}"
           th:object="${medication}" method="post" enctype="multipart/form-data" class="w-75">
+        <input type="hidden" th:field="*{id}">
         <div class="mb-3">
             <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
             <input type="text" class="form-control" th:field="*{name}">

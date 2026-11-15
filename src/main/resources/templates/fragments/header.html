@@ -87,6 +87,10 @@
                 <a class="nav-link" th:href="@{/catalog/symptoms}">По симптомам</a>
                 <a class="nav-link" th:href="@{/catalog/ingredients}">По веществам</a>
                 <a class="nav-link" th:href="@{/catalog/request}">Оставить заявку</a>
+                <a class="nav-link" th:href="@{/cart}">Корзина
+                    <span th:if="${cartCount != null and cartCount > 0}"
+                          class="badge bg-primary rounded-pill">[[${cartCount}]]</span>
+                </a>
             </div>
 
             <!-- Меню покупателя (авторизованный) -->
@@ -96,6 +100,14 @@
                 <a class="nav-link" th:href="@{/catalog/symptoms}">По симптомам</a>
                 <a class="nav-link" th:href="@{/catalog/ingredients}">По веществам</a>
                 <a class="nav-link" th:href="@{/catalog/request}">Оставить заявку</a>
+                <a class="nav-link" th:href="@{/favorites}">Избранное
+                    <span th:if="${restockNotifications != null and !restockNotifications.isEmpty()}"
+                          class="badge bg-danger rounded-pill">[[${restockNotifications.size()}]]</span>
+                </a>
+                <a class="nav-link" th:href="@{/cart}">Корзина
+                    <span th:if="${cartCount != null and cartCount > 0}"
+                          class="badge bg-primary rounded-pill">[[${cartCount}]]</span>
+                </a>
                 <a class="nav-link" th:href="@{/my-orders}">Мои заказы</a>
                 <a class="nav-link" th:href="@{/my-requests}">Мои заявки
                     <span th:if="${unreadRequests != null and unreadRequests > 0}"
@@ -121,6 +133,22 @@
         </div>
     </div>
 </nav>
+
+<!-- Уведомление о том, что избранные товары снова появились в наличии -->
+<div class="container mt-3" th:if="${restockNotifications != null and !restockNotifications.isEmpty()}">
+    <div class="alert alert-success d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0">
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <i class="bi bi-bell-fill"></i>
+            <span class="fw-semibold">Избранные товары снова в наличии:</span>
+            <span th:each="notif, iter : ${restockNotifications}">
+                <a th:href="@{/catalog/medication/{id}(id=${notif.medicationId})}"
+                   th:text="${iter.first ? notif.name : (', ' + notif.name)}"
+                   class="link-primary"></a>
+            </span>
+        </div>
+        <a th:href="@{/favorites}" class="btn btn-sm btn-save">Перейти в избранное</a>
+    </div>
+</div>
 <style>
     html, body {
         height: 100%;
@@ -149,6 +177,25 @@
         padding: 10px;
         border-top-left-radius: 0.5rem;
         border-top-right-radius: 0.5rem;
+    }
+
+    /* Товар нет в наличии: картинка бледнеет и затемняется */
+    .out-of-stock {
+        filter: grayscale(1) opacity(0.55);
+    }
+
+    .out-of-stock-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.65);
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        white-space: nowrap;
     }
 
     .btn-edit {

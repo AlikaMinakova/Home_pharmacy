@@ -35,6 +35,10 @@ public class CustomerOrder {
     @Column(nullable = false, length = 20)
     private OrderStatus status = OrderStatus.NEW;
 
+    /** Общий идентификатор заказа из корзины: несколько позиций объединяются в один заказ. */
+    @Column(name = "order_group", length = 40)
+    private String orderGroup;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 }

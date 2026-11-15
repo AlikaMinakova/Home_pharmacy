@@ -8,11 +8,13 @@ import ru.home_pharmacy.home_pharmacy.entity.ActiveIngredient;
 import ru.home_pharmacy.home_pharmacy.entity.Disease;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.entity.Pharmacy;
+import ru.home_pharmacy.home_pharmacy.entity.PriceHistory;
 import ru.home_pharmacy.home_pharmacy.entity.Symptom;
 import ru.home_pharmacy.home_pharmacy.repository.ActiveIngredientRepository;
 import ru.home_pharmacy.home_pharmacy.repository.DiseaseRepository;
 import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PharmacyRepository;
+import ru.home_pharmacy.home_pharmacy.repository.PriceHistoryRepository;
 import ru.home_pharmacy.home_pharmacy.repository.SymptomRepository;
 
 import java.math.BigDecimal;
@@ -39,6 +41,7 @@ public class DemoDataInitializer implements CommandLineRunner {
     private final ActiveIngredientRepository activeIngredientRepository;
     private final MedicationRepository medicationRepository;
     private final PharmacyRepository pharmacyRepository;
+    private final PriceHistoryRepository priceHistoryRepository;
 
     @Override
     @Transactional
@@ -48,6 +51,7 @@ public class DemoDataInitializer implements CommandLineRunner {
         seedIngredients();
         seedMedications();
         seedPharmacies();
+        seedPriceHistory();
     }
 
     private void seedSymptoms() {
@@ -202,6 +206,36 @@ public class DemoDataInitializer implements CommandLineRunner {
         addBatch(batches, meds.get("Но-шпа"), 19, today.minusDays(20), today.plusDays(290));
 
         pharmacyRepository.saveAll(batches);
+    }
+
+    /** История изменения цен, чтобы у покупателей отображался график цены. */
+    private void seedPriceHistory() {
+        if (priceHistoryRepository.count() > 0) {
+            return;
+        }
+        LocalDate today = LocalDate.now();
+        List<PriceHistory> history = new ArrayList<>();
+        for (Medication medication : medicationRepository.findAll()) {
+            BigDecimal base = medication.getPrice();
+            // несколько точек изменения цены: закупили дешевле, потом цена менялась
+            history.add(PriceHistory.builder()
+                    .medication(medication)
+                    .price(base.subtract(new BigDecimal("12")))
+                    .changedAt(today.minusDays(40)).build());
+            history.add(PriceHistory.builder()
+                    .medication(medication)
+                    .price(base.subtract(new BigDecimal("6")))
+                    .changedAt(today.minusDays(25)).build());
+            history.add(PriceHistory.builder()
+                    .medication(medication)
+                    .price(base.add(new BigDecimal("9")))
+                    .changedAt(today.minusDays(12)).build());
+            history.add(PriceHistory.builder()
+                    .medication(medication)
+                    .price(base)
+                    .changedAt(today.minusDays(2)).build());
+        }
+        priceHistoryRepository.saveAll(history);
     }
 
     private Medication med(String name, String description, String image, String price,

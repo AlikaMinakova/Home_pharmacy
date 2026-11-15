@@ -8,12 +8,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.home_pharmacy.home_pharmacy.dto.CatalogMedicationDto;
+import ru.home_pharmacy.home_pharmacy.dto.PricePointDto;
 import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PharmacyRepository;
+import ru.home_pharmacy.home_pharmacy.repository.PriceHistoryRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class CatalogService {
 
     private final MedicationRepository medicationRepository;
     private final PharmacyRepository pharmacyRepository;
+    private final PriceHistoryRepository priceHistoryRepository;
 
     public Page<CatalogMedicationDto> findAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
@@ -51,6 +56,36 @@ public class CatalogService {
 
     public Long getAvailableQuantity(Long medicationId) {
         return pharmacyRepository.sumAvailableQuantity(medicationId, LocalDate.now());
+    }
+
+    /** История изменения цены лекарства для графика в карточке товара. */
+    public List<PricePointDto> getPriceHistory(Long medicationId) {
+        List<PricePointDto> points = new ArrayList<>(priceHistoryRepository
+                .findAllByMedicationIdOrderByChangedAtAsc(medicationId)
+                .stream()
+                .map(h -> PricePointDto.builder()
+                        .date(h.getChangedAt())
+                        .price(h.getPrice())
+                        .label(h.getChangedAt().getDayOfMonth() + "." + h.getChangedAt().getMonthValue()
+                                + "." + h.getChangedAt().getYear())
+                        .build())
+                .toList());
+
+        // гарантируем, что график всегда заканчивается текущей ценой лекарства
+        Medication medication = medicationRepository.findById(medicationId).orElse(null);
+        if (medication != null && medication.getPrice() != null) {
+            boolean lastMatches = !points.isEmpty()
+                    && points.get(points.size() - 1).getPrice().compareTo(medication.getPrice()) == 0;
+            if (!lastMatches) {
+                LocalDate today = LocalDate.now();
+                points.add(PricePointDto.builder()
+                        .date(today)
+                        .price(medication.getPrice())
+                        .label(today.getDayOfMonth() + "." + today.getMonthValue() + "." + today.getYear())
+                        .build());
+            }
+        }
+        return points;
     }
 
     private CatalogMedicationDto toResponse(Medication medication) {

@@ -12,15 +12,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.home_pharmacy.home_pharmacy.dto.CatalogMedicationDto;
 import ru.home_pharmacy.home_pharmacy.dto.MedicationDto;
-import ru.home_pharmacy.home_pharmacy.dto.OrderDto;
 import ru.home_pharmacy.home_pharmacy.dto.RequestDto;
 import ru.home_pharmacy.home_pharmacy.entity.Role;
 import ru.home_pharmacy.home_pharmacy.entity.User;
 import ru.home_pharmacy.home_pharmacy.service.ActiveIngredientService;
 import ru.home_pharmacy.home_pharmacy.service.CatalogService;
 import ru.home_pharmacy.home_pharmacy.service.DiseaseService;
+import ru.home_pharmacy.home_pharmacy.service.FavoriteService;
 import ru.home_pharmacy.home_pharmacy.service.MedicationService;
-import ru.home_pharmacy.home_pharmacy.service.OrderService;
 import ru.home_pharmacy.home_pharmacy.service.RequestService;
 import ru.home_pharmacy.home_pharmacy.service.SymptomService;
 import ru.home_pharmacy.home_pharmacy.service.UserService;
@@ -35,9 +34,9 @@ public class CatalogController {
     private final DiseaseService diseaseService;
     private final SymptomService symptomService;
     private final ActiveIngredientService activeIngredientService;
-    private final OrderService orderService;
     private final RequestService requestService;
     private final UserService userService;
+    private final FavoriteService favoriteService;
 
     @GetMapping
     public String list(@RequestParam(defaultValue = "0") int page,
@@ -61,8 +60,15 @@ public class CatalogController {
         if (medication == null) {
             return "redirect:/catalog";
         }
+        Long available = catalogService.getAvailableQuantity(id);
+        User customer = currentCustomer();
         model.addAttribute("medication", medication);
-        model.addAttribute("availableQuantity", catalogService.getAvailableQuantity(id));
+        model.addAttribute("availableQuantity", available);
+        model.addAttribute("inStock", available != null && available > 0);
+        model.addAttribute("priceHistory", catalogService.getPriceHistory(id));
+        model.addAttribute("isCustomer", customer != null);
+        model.addAttribute("isFavorite", customer != null
+                && favoriteService.isFavorite(customer.getUsername(), id));
         return "catalog/detail";
     }
 
@@ -140,55 +146,6 @@ public class CatalogController {
         return "catalog/medicationsBy";
     }
 
-    // ==== Оформление заказа ====
-
-    @GetMapping("/order")
-    public String orderForm(@RequestParam(required = false) Long medicationId, Model model) {
-        OrderDto dto = new OrderDto();
-        dto.setMedicationId(medicationId);
-        prefillCustomer(dto);
-        model.addAttribute("order", dto);
-        CatalogMedicationDto medication = medicationId != null ? catalogService.getById(medicationId) : null;
-        model.addAttribute("medication", medication);
-        model.addAttribute("availableQuantity",
-                medication != null ? catalogService.getAvailableQuantity(medicationId) : null);
-        model.addAttribute("isCustomer", currentCustomer() != null);
-        return "catalog/order";
-    }
-
-    @PostMapping("/order")
-    public String submitOrder(@Valid @ModelAttribute("order") OrderDto orderDto,
-                              BindingResult bindingResult,
-                              RedirectAttributes redirectAttributes,
-                              Model model) {
-        User customer = currentCustomer();
-        if (customer != null) {
-            orderDto.setCustomerName(customer.getName());
-            orderDto.setCustomerPhone(customer.getUsername());
-        }
-
-        // нельзя заказать больше, чем есть на складе
-        if (!bindingResult.hasErrors() && orderDto.getMedicationId() != null && orderDto.getQuantity() != null) {
-            Long available = catalogService.getAvailableQuantity(orderDto.getMedicationId());
-            if (orderDto.getQuantity() > available) {
-                bindingResult.rejectValue("quantity", "quantity",
-                        "На складе доступно только " + available + " шт");
-            }
-        }
-
-        if (bindingResult.hasErrors()) {
-            CatalogMedicationDto medication =
-                    orderDto.getMedicationId() != null ? catalogService.getById(orderDto.getMedicationId()) : null;
-            model.addAttribute("medication", medication);
-            model.addAttribute("availableQuantity",
-                    medication != null ? catalogService.getAvailableQuantity(orderDto.getMedicationId()) : null);
-            return "catalog/order";
-        }
-        orderService.createOrder(orderDto);
-        redirectAttributes.addFlashAttribute("successMessage", "Заказ оформлен! Заберите лекарство в аптечном пункте.");
-        return "redirect:/catalog";
-    }
-
     // ==== Заявка на отсутствующее лекарство ====
 
     @GetMapping("/request")
@@ -224,14 +181,6 @@ public class CatalogController {
     }
 
     // ==== Авторизованный покупатель ====
-
-    private void prefillCustomer(OrderDto dto) {
-        User customer = currentCustomer();
-        if (customer != null) {
-            dto.setCustomerName(customer.getName());
-            dto.setCustomerPhone(customer.getUsername());
-        }
-    }
 
     private User currentCustomer() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

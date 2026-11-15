@@ -7,16 +7,65 @@
 
 <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold mb-0">Аптечка</h3>
+        <h3 class="fw-bold mb-0">Склад</h3>
         <a th:href="@{/pharmacies/new}" class="btn btn-save px-4">+ Добавить поступление</a>
     </div>
 
+    <!-- Истекает срок годности — самый верх -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <span class="fw-semibold">СОРТИРОВАТЬ:</span>
-        <form th:action="@{/pharmacies}" method="get" class="ms-3">
+        <h3 class="fw-bold mb-0 text-dark">
+            Истекает срок (≤ 7 дней)
+        </h3>
+        <a th:href="@{/pharmacies/expiring}" class="btn btn-save px-4">
+            Посмотреть все
+        </a>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+        <div class="col" th:each="expiring : ${pharmacyPage.expiringSoon}">
+            <div class="card h-100 shadow-sm">
+                <div class="position-relative">
+                    <img th:if="${expiring.medication.image != null}"
+                         th:src="${expiring.medication.image}"
+                         th:classappend="${expiring.quantity != null and expiring.quantity > 0} ? '' : 'out-of-stock'"
+                         class="card-img-fixed" alt="лекарство">
+                    <span th:if="${expiring.quantity == null or expiring.quantity <= 0}"
+                          class="out-of-stock-overlay">Нет в наличии</span>
+                </div>
+                <div class="card-body">
+                    <p th:if="${expiring.quantity != null and expiring.quantity > 0}"
+                       class="text-success small fw-semibold">На складе</p>
+                    <p th:unless="${expiring.quantity != null and expiring.quantity > 0}"
+                       class="text-secondary small fw-semibold">Нет в наличии</p>
+                    <h6 class="fw-bold">
+                        <a th:href="@{/pharmacies/detail/{id}(id=${expiring.id})}"
+                           th:text="${expiring.medication.name}"
+                           class="text-decoration-none text-dark"></a>
+                    </h6>
+                    <ul class="list-unstyled small text-muted">
+                        <li th:text="'Дата покупки: ' + ${expiring.purchaseDate}"></li>
+                        <li th:text="'Срок годности: ' + ${expiring.expirationDate}"></li>
+                        <li th:if="${expiring.quantity != null and expiring.quantity > 0}"
+                            th:text="'Количество: ' + ${expiring.quantity} + ' шт'"></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+        <form th:action="@{/pharmacies}" method="get" class="d-flex gap-2 flex-grow-1" style="max-width: 480px;">
+            <input type="text" name="keyword" th:value="${#strings.defaultString(keyword, '')}"
+                   class="form-control" placeholder="Поиск по названию лекарства...">
+            <input type="hidden" name="sort" th:value="${sort}">
+            <button type="submit" class="btn btn-outline-primary">Найти</button>
+            <a th:href="@{/pharmacies}" class="btn btn-outline-primary">Сброс</a>
+        </form>
+
+        <form th:action="@{/pharmacies}" method="get" class="d-flex align-items-center gap-2">
+            <span class="fw-semibold">СОРТИРОВАТЬ:</span>
             <select name="sort" class="form-select w-auto" onchange="this.form.submit()">
-                <option th:value="purchaseDate" th:selected="${sort == 'purchaseDate'}">По дате покупки</option>
-                <option th:value="expirationDate" th:selected="${sort == 'expirationDate'}">По сроку годности</option>
+                <option th:value="name" th:selected="${sort == 'name'}">По названию</option>
                 <option th:value="quantity" th:selected="${sort == 'quantity'}">По количеству</option>
             </select>
             <input type="hidden" name="keyword" th:value="${keyword}">
@@ -24,23 +73,28 @@
     </div>
 
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-        <div class="col" th:each="pharmacy : ${pharmacyPage.all}">
+        <div class="col" th:each="stock : ${pharmacyPage.all}">
             <div class="card h-100 shadow-sm">
-                <img th:src="${pharmacy.medication.image != null ? pharmacy.medication.image : '/no-photo.jpg'}"
-                     class="card-img-fixed" alt="Фото лекарства">
+                <div class="position-relative">
+                    <img th:src="${stock.image != null ? stock.image : '/no-photo.jpg'}"
+                         th:classappend="${stock.totalQuantity != null and stock.totalQuantity > 0} ? '' : 'out-of-stock'"
+                         class="card-img-fixed" alt="Фото лекарства">
+                    <span th:if="${stock.totalQuantity == null or stock.totalQuantity <= 0}"
+                          class="out-of-stock-overlay">Нет в наличии</span>
+                </div>
                 <div class="card-body">
-                    <p class="text-success small fw-semibold">Есть в аптечке</p>
-                    <h6 class="fw-bold">
-                        <a th:href="@{/pharmacies/detail/{id}(id=${pharmacy.id})}"
-                           th:text="${pharmacy.medication.name}"
-                           class="text-decoration-none text-dark"></a>
-                    </h6>
+                    <p th:if="${stock.totalQuantity != null and stock.totalQuantity > 0}"
+                       class="text-success small fw-semibold">На складе</p>
+                    <p th:unless="${stock.totalQuantity != null and stock.totalQuantity > 0}"
+                       class="text-secondary small fw-semibold">Нет в наличии</p>
+                    <h6 class="fw-bold" th:text="${stock.name}"></h6>
                     <ul class="list-unstyled small text-muted">
-                        <li th:text="'Цена: ' + ${pharmacy.retailPrice} + ' ₽'"></li>
-                        <li th:text="'Дата покупки: ' + ${pharmacy.purchaseDate}"></li>
-                        <li th:text="'Срок годности: ' + ${pharmacy.expirationDate}"></li>
-                        <li th:text="'Количество: ' + ${pharmacy.quantity} + ' шт'"></li>
+                        <li th:text="'Цена: ' + ${#numbers.formatDecimal(stock.price, 1, 2)} + ' ₽'"></li>
+                        <li th:if="${stock.totalQuantity != null and stock.totalQuantity > 0}"
+                            th:text="'Всего на складе: ' + ${stock.totalQuantity} + ' шт'"></li>
                     </ul>
+                    <a th:href="@{/catalog/medication/{id}(id=${stock.medicationId})}"
+                       class="btn btn-edit px-3">Карточка</a>
                 </div>
             </div>
         </div>
@@ -87,60 +141,6 @@
 
         </ul>
     </nav>
-
-
-    <h4 class="fw-bold mb-4">Недавние поступления</h4>
-    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-        <div class="col" th:each="recently : ${pharmacyPage.recentlyBought}">
-            <div class="card h-100 shadow-sm">
-                <img th:src="${recently.medication.image != null ? recently.medication.image : '/no-photo.jpg'}"
-                     class="card-img-fixed" alt="лекарство">
-                <div class="card-body">
-                    <p class="text-success small fw-semibold">Подтверждённый заказ</p>
-                    <h6 class="fw-bold" th:text="${recently.medication.name}"></h6>
-                    <ul class="list-unstyled small text-muted">
-                        <li th:text="'Количество: ' + ${recently.quantity} + ' шт'"></li>
-                        <li th:text="'Покупатель: ' + ${recently.customerName}"></li>
-                        <li th:text="'Дата: ' + ${#temporals.format(recently.createdAt, 'dd.MM.yyyy HH:mm')}"></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold mb-0 text-dark">
-            Истекает срок (≤ 7 дней)
-        </h3>
-
-        <a th:href="@{/pharmacies/expiring}" class="btn btn-save px-4">
-            Посмотреть все
-        </a>
-    </div>
-
-
-    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-        <div class="col" th:each="expiring : ${pharmacyPage.expiringSoon}">
-            <div class="card h-100 shadow-sm">
-                <img th:if="${expiring.medication.image != null}"
-                     th:src="${expiring.medication.image}"
-                     class="card-img-fixed" alt="лекарство">
-                <div class="card-body">
-                    <p class="text-success small fw-semibold">Есть в аптечке</p>
-                    <h6 class="fw-bold">
-                        <a th:href="@{/pharmacies/detail/{id}(id=${expiring.id})}"
-                           th:text="${expiring.medication.name}"
-                           class="text-decoration-none text-dark"></a>
-                    </h6>
-                    <ul class="list-unstyled small text-muted">
-                        <li th:text="'Дата покупки: ' + ${expiring.purchaseDate}"></li>
-                        <li th:text="'Срок годности: ' + ${expiring.expirationDate}"></li>
-                        <li th:text="'Количество: ' + ${expiring.quantity} + ' шт'"></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div th:replace="fragments/footer :: footer"></div>

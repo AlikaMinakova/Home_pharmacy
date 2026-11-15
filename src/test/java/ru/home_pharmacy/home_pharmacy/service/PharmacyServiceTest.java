@@ -103,8 +103,7 @@ class PharmacyServiceTest {
                 .build();
         pharmacyService.create(dto);
 
-        PharmacyOverviewResponse overview = pharmacyService.getPharmacyOverview(0, 10, null, "purchaseDate");
+        PharmacyOverviewResponse overview = pharmacyService.getPharmacyOverview(0, 10, null, "name");
         assertThat(overview.getAll().getContent()).isNotEmpty();
-        assertThat(overview.getRecentlyBought()).isNotEmpty();
     }
 }

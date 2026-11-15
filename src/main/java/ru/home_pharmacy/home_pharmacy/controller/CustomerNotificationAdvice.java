@@ -6,37 +6,56 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import ru.home_pharmacy.home_pharmacy.component.Cart;
+import ru.home_pharmacy.home_pharmacy.dto.FavoriteDto;
+import ru.home_pharmacy.home_pharmacy.service.FavoriteService;
 import ru.home_pharmacy.home_pharmacy.service.RequestService;
 
+import java.util.List;
+
 /**
- * Добавляет на каждую страницу количество непрочитанных комментариев аптекаря
- * для текущего авторизованного покупателя (для показа значка в меню).
+ * Добавляет на каждую страницу данные, нужные в навигации и для уведомлений:
+ * количество непрочитанных комментариев аптекаря, счётчик корзины и список
+ * избранных товаров, которые снова появились в наличии.
  */
 @ControllerAdvice
 @RequiredArgsConstructor
 public class CustomerNotificationAdvice {
 
     private final RequestService requestService;
+    private final FavoriteService favoriteService;
+    private final Cart cart;
 
     @ModelAttribute
-    public void addUnreadCount(Model model) {
+    public void addGlobalAttributes(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        boolean authenticated = auth != null && auth.isAuthenticated()
+                && auth.getName() != null && !"anonymousUser".equals(auth.getName());
+
+        model.addAttribute("cartCount", cart.totalCount());
+
+        if (!authenticated) {
             model.addAttribute("unreadRequests", 0L);
             model.addAttribute("pharmacistUnread", 0L);
+            model.addAttribute("restockNotifications", List.of());
             return;
         }
+
         boolean isEmployee = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"));
+
         if (isEmployee) {
             model.addAttribute("unreadRequests", 0L);
             model.addAttribute("pharmacistUnread", requestService.countPharmacistUnread());
+            model.addAttribute("restockNotifications", List.of());
             return;
         }
+
         String username = auth.getName();
-        long unread = (username != null && !"anonymousUser".equals(username))
-                ? requestService.countUnread(username) : 0L;
-        model.addAttribute("unreadRequests", unread);
+        model.addAttribute("unreadRequests", requestService.countUnread(username));
         model.addAttribute("pharmacistUnread", 0L);
+        // избранные товары, которые снова появились в наличии
+        List<FavoriteDto> restocked = favoriteService.notifyRestocked(username);
+        model.addAttribute("restockNotifications", restocked);
     }
 }

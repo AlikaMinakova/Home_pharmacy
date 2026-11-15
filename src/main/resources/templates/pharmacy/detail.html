@@ -5,87 +5,121 @@
 
 <div th:replace="fragments/header :: body"></div>
 
-<div class="container my-5">
+<div class="container my-5 content">
+    <a th:href="@{/pharmacies}" class="btn btn-outline-primary px-3 mb-4">
+        <i class="bi bi-arrow-left"></i> Склад
+    </a>
 
-    <h3 class="fw-bold mb-4" th:text="${medication.name}"></h3>
+    <div class="row g-4">
 
-    <div class="row">
-
-        <div class="col-md-4 text-center">
-            <img th:if="${medication.image != null}"
-                 th:src="@{${medication.image}}"
-                 class="img-thumbnail"
-                 alt="Фото лекарства">
+        <!-- Изображение и краткая сводка -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="position-relative">
+                    <img th:src="${medication.image != null ? medication.image : '/no-photo.jpg'}"
+                         th:classappend="${pharmacy.quantity != null and pharmacy.quantity > 0} ? '' : 'out-of-stock'"
+                         class="card-img-top w-100"
+                         style="height:260px; object-fit:contain; background:#f8f9fa; padding:12px;"
+                         alt="Фото лекарства">
+                    <span th:if="${pharmacy.quantity == null or pharmacy.quantity <= 0}"
+                          class="out-of-stock-overlay">Нет в наличии</span>
+                </div>
+                <div class="card-body text-center">
+                    <h4 class="fw-bold mb-2" th:text="${medication.name}"></h4>
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mb-2">
+                        <span th:if="${medication.prescriptionRequired}" class="badge bg-danger">
+                            <i class="bi bi-exclamation-triangle-fill"></i> По рецепту
+                        </span>
+                        <span th:if="${pharmacy.quantity != null and pharmacy.quantity > 0}" class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> На складе: [[${pharmacy.quantity}]] шт
+                        </span>
+                        <span th:unless="${pharmacy.quantity != null and pharmacy.quantity > 0}" class="badge bg-secondary">
+                            <i class="bi bi-x-circle"></i> Нет в наличии
+                        </span>
+                    </div>
+                    <p class="fs-5 fw-bold text-primary mb-0"
+                       th:text="'Цена: ' + ${#numbers.formatDecimal(pharmacy.retailPrice, 1, 2)} + ' ₽'"></p>
+                </div>
+            </div>
         </div>
 
+        <!-- Подробная информация -->
+        <div class="col-md-8">
 
-        <div class="col-md-6">
-            <div class="d-flex justify-content-end gap-2 mb-3">
-
-                <a th:href="@{/pharmacies/{id}(id=${pharmacy.id})}"
-                   class="btn btn-edit px-4">Редактировать</a>
-
-
-                <form th:action="@{/pharmacies/{id}/delete(id=${pharmacy.id})}"
-                      method="post" class="d-inline">
-                    <button type="submit" class="btn btn-delete px-4">Удалить</button>
+            <!-- Действия администратора -->
+            <div class="d-flex gap-2 flex-wrap mb-4">
+                <a th:href="@{/pharmacies/{id}(id=${pharmacy.id})}" class="btn btn-outline-primary px-4">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+                <form th:action="@{/pharmacies/{id}/delete(id=${pharmacy.id})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-trash"></i> Удалить
+                    </button>
                 </form>
             </div>
 
-
-            <div class="card p-3 mb-4 shadow-sm">
-                <h6 class="fw-bold">Основное</h6>
-                <ul class="list-unstyled small">
-                    <li th:text="'Описание: ' + ${pharmacy.medication.description}"></li>
-                    <li th:text="'Цена: ' + ${pharmacy.retailPrice} + ' ₽'"></li>
-                    <li th:text="'Осталось: ' + ${pharmacy.quantity} + ' шт'"></li>
-                    <li th:text="'Дата покупки: ' + ${pharmacy.purchaseDate}"></li>
-                    <li th:text="'Срок годности: ' + ${pharmacy.expirationDate}"></li>
-                    <li th:if="${medication.activeIngredients != null && !medication.activeIngredients.isEmpty()}">
+            <!-- Основное -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white fw-semibold py-2">
+                    <i class="bi bi-info-circle-fill"></i> Основное
+                </div>
+                <div class="card-body">
+                    <p class="mb-2" th:text="'Описание: ' + ${medication.description}"></p>
+                    <p class="mb-1" th:text="'Дата покупки: ' + ${pharmacy.purchaseDate}"></p>
+                    <p class="mb-1" th:text="'Срок годности: ' + ${pharmacy.expirationDate}"></p>
+                    <p class="small text-secondary mb-1">
+                        <i class="bi bi-droplet-half text-primary"></i>
                         <strong>Действующие вещества:</strong>
-                        <span th:each="ingredient, iter : ${medication.activeIngredients}"
-                              th:text="${ingredient.name + (iter.last ? '' : ', ')}"></span>
-                    </li>
-                    <li th:if="${medication.activeIngredients == null or medication.activeIngredients.isEmpty()}">
-                        <strong>Действующие вещества:</strong> не указаны
-                    </li>
-                </ul>
+                        <span th:if="${medication.activeIngredients != null and !medication.activeIngredients.isEmpty()}">
+                            <span th:each="ingredient, iter : ${medication.activeIngredients}"
+                                  th:text="${ingredient.name + (iter.last ? '' : ', ')}"></span>
+                        </span>
+                        <span th:unless="${medication.activeIngredients != null and !medication.activeIngredients.isEmpty()}">не указаны</span>
+                    </p>
+                </div>
             </div>
 
-            <div class="card p-3 shadow-sm">
-                <h6 class="fw-bold">От чего</h6>
-                <table class="table table-sm">
-                    <thead>
-                    <tr>
-                        <th>Болезни</th>
-                        <th>Симптомы</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="disease : ${medication.diseases}">
-                        <td th:text="${disease.name}"></td>
-                        <td>
-                          <span th:each="symptom, stat : ${disease.symptoms}"
-                                th:text="${symptom.name + (stat.last ? '' : ', ')}"></span>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+            <!-- От чего -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-success text-white fw-semibold py-2">
+                    <i class="bi bi-patch-check-fill"></i> От чего помогает
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Болезни</th>
+                            <th>Симптомы</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="disease : ${medication.diseases}">
+                            <td class="ps-4 fw-semibold" th:text="${disease.name}"></td>
+                            <td>
+                                <span th:each="symptom, stat : ${disease.symptoms}"
+                                      th:text="${symptom.name + (stat.last ? '' : ', ')}"></span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- График изменения цены -->
-            <div class="card p-3 mt-4 shadow-sm" th:if="${priceHistory != null and !priceHistory.isEmpty()}">
-                <h6 class="fw-bold">История изменения цены</h6>
-                <canvas id="priceChart" width="600" height="200"
-                        style="width:600px; height:200px; max-width:100%;"></canvas>
+            <div class="card shadow-sm border-0" th:if="${priceHistory != null and !priceHistory.isEmpty()}">
+                <div class="card-header bg-info text-white fw-semibold py-2">
+                    <i class="bi bi-graph-up-arrow"></i> История изменения цены
+                </div>
+                <div class="card-body">
+                    <canvas id="priceChart" width="600" height="200"
+                            style="width:600px; height:200px; max-width:100%;"></canvas>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<footer class="footer bg-primary text-center py-4">
-    <div th:replace="fragments/footer :: footer"></div>
-</footer>
+<div th:replace="fragments/footer :: footer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script th:inline="javascript">
@@ -105,11 +139,12 @@
                 datasets: [{
                     label: 'Цена, ₽',
                     data: data,
-                    borderColor: '#0b5ed7',
-                    backgroundColor: 'rgba(11, 94, 215, 0.1)',
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
                     fill: true,
                     tension: 0.3,
-                    pointRadius: 4
+                    pointRadius: 4,
+                    pointBackgroundColor: '#0d6efd'
                 }]
             },
             options: {

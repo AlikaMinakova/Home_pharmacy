@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <h3 class="fw-bold mb-4"><i class="bi bi-speedometer2"></i> Сводка</h3>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h1 class="fw-bold text-primary mb-0" th:text="${newOrders}"></h1>
+                    <span class="text-muted">Новых заказов</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h1 class="fw-bold text-success mb-0" th:text="${totalOrders}"></h1>
+                    <span class="text-muted">Всего заказов</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h1 class="fw-bold text-warning mb-0" th:text="${newRequests}"></h1>
+                    <span class="text-muted">Новых заявок</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h1 class="fw-bold text-info mb-0" th:text="${totalRequests}"></h1>
+                    <span class="text-muted">Всего заявок</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h1 class="fw-bold text-danger mb-0" th:text="${expiredCount}"></h1>
+                    <span class="text-muted">Просроченных партий</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h1 class="fw-bold text-secondary mb-0" th:text="${medicationCount}"></h1>
+                    <span class="text-muted">Лекарств в каталоге</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap mt-4">
+        <a th:href="@{/orders}" class="btn btn-outline-primary"><i class="bi bi-receipt"></i> Заказы</a>
+        <a th:href="@{/requests}" class="btn btn-outline-primary"><i class="bi bi-chat-left"></i> Заявки</a>
+        <a th:href="@{/pharmacies}" class="btn btn-outline-primary"><i class="bi bi-box-seam"></i> Склад</a>
+        <a th:href="@{/pharmacies/expired}" class="btn btn-outline-danger"><i class="bi bi-exclamation-triangle"></i> Просроченные</a>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

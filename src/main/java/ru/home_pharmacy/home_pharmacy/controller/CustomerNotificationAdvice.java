@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import ru.home_pharmacy.home_pharmacy.dto.FavoriteDto;
 import ru.home_pharmacy.home_pharmacy.service.CartService;
 import ru.home_pharmacy.home_pharmacy.service.FavoriteService;
+import ru.home_pharmacy.home_pharmacy.service.OrderService;
 import ru.home_pharmacy.home_pharmacy.service.RequestService;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class CustomerNotificationAdvice {
     private final RequestService requestService;
     private final FavoriteService favoriteService;
     private final CartService cartService;
+    private final OrderService orderService;
 
     @ModelAttribute
     public void addGlobalAttributes(Model model) {
@@ -33,6 +35,9 @@ public class CustomerNotificationAdvice {
                 && auth.getName() != null && !"anonymousUser".equals(auth.getName());
 
         model.addAttribute("cartCount", 0);
+        model.addAttribute("orderUnread", 0L);
+        model.addAttribute("newOrders", 0L);
+        model.addAttribute("newRequests", 0L);
 
         if (!authenticated) {
             model.addAttribute("unreadRequests", 0L);
@@ -45,6 +50,8 @@ public class CustomerNotificationAdvice {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"));
 
         if (isEmployee) {
+            model.addAttribute("newOrders", orderService.countNew());
+            model.addAttribute("newRequests", requestService.countNew());
             model.addAttribute("unreadRequests", 0L);
             model.addAttribute("pharmacistUnread", requestService.countPharmacistUnread());
             model.addAttribute("restockNotifications", List.of());
@@ -53,6 +60,7 @@ public class CustomerNotificationAdvice {
 
         String username = auth.getName();
         model.addAttribute("cartCount", cartService.getCartCount(username));
+        model.addAttribute("orderUnread", orderService.countUnreadByPhone(username));
         model.addAttribute("unreadRequests", requestService.countUnread(username));
         model.addAttribute("pharmacistUnread", 0L);
         // избранные товары, которые снова появились в наличии

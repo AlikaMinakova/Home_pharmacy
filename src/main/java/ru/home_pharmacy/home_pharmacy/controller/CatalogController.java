@@ -20,9 +20,13 @@ import ru.home_pharmacy.home_pharmacy.service.CatalogService;
 import ru.home_pharmacy.home_pharmacy.service.DiseaseService;
 import ru.home_pharmacy.home_pharmacy.service.FavoriteService;
 import ru.home_pharmacy.home_pharmacy.service.MedicationService;
+import ru.home_pharmacy.home_pharmacy.service.OrderService;
 import ru.home_pharmacy.home_pharmacy.service.RequestService;
+import ru.home_pharmacy.home_pharmacy.service.ReviewService;
 import ru.home_pharmacy.home_pharmacy.service.SymptomService;
 import ru.home_pharmacy.home_pharmacy.service.UserService;
+
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/catalog")
@@ -37,21 +41,49 @@ public class CatalogController {
     private final RequestService requestService;
     private final UserService userService;
     private final FavoriteService favoriteService;
+    private final ReviewService reviewService;
+    private final OrderService orderService;
 
     @GetMapping
     public String list(@RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "8") int size,
                        @RequestParam(required = false) String name,
+                       @RequestParam(required = false) String inStock,
+                       @RequestParam(required = false) String prescriptionRequired,
+                       @RequestParam(required = false) String minPrice,
+                       @RequestParam(required = false) String maxPrice,
                        Model model) {
-        Page<CatalogMedicationDto> medications;
-        if (name != null && !name.trim().isEmpty()) {
-            medications = catalogService.searchByName(name, page, size);
-        } else {
-            medications = catalogService.findAll(page, size);
-        }
+        Boolean inStockBool = parseBoolean(inStock);
+        Boolean rxBool = parseBoolean(prescriptionRequired);
+        BigDecimal min = parseDecimal(minPrice);
+        BigDecimal max = parseDecimal(maxPrice);
+        Page<CatalogMedicationDto> medications = catalogService.filter(
+                name, inStockBool, rxBool, min, max, page, size);
         model.addAttribute("medicationsPage", medications);
         model.addAttribute("currentName", name);
+        model.addAttribute("inStock", inStockBool);
+        model.addAttribute("prescriptionRequired", rxBool);
+        model.addAttribute("minPrice", min);
+        model.addAttribute("maxPrice", max);
         return "catalog/list";
+    }
+
+    private Boolean parseBoolean(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return "true".equalsIgnoreCase(value);
+    }
+
+    private BigDecimal parseDecimal(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return new BigDecimal(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @GetMapping("/medication/{id}")
@@ -69,7 +101,34 @@ public class CatalogController {
         model.addAttribute("isCustomer", customer != null);
         model.addAttribute("isFavorite", customer != null
                 && favoriteService.isFavorite(customer.getUsername(), id));
+        model.addAttribute("reviews", reviewService.getReviews(id));
+        model.addAttribute("averageRating", reviewService.getAverageRating(id));
+        model.addAttribute("reviewCount", reviewService.getCount(id));
+        model.addAttribute("userReviewed", customer != null
+                && reviewService.hasReviewed(customer.getUsername(), id));
+        model.addAttribute("canReview", customer != null
+                && orderService.hasPurchased(customer.getUsername(), id));
         return "catalog/detail";
+    }
+
+    @PostMapping("/medication/{id}/review")
+    public String submitReview(@PathVariable Long id,
+                               @RequestParam(required = false) Integer rating,
+                               @RequestParam(required = false) String comment,
+                               RedirectAttributes redirectAttributes) {
+        User customer = currentCustomer();
+        if (customer == null) {
+            return "redirect:/login";
+        }
+        try {
+            int bounded = (rating == null) ? 5 : Math.max(1, Math.min(5, rating));
+            reviewService.addOrUpdate(customer.getUsername(), id, bounded,
+                    comment == null ? null : comment.trim());
+            redirectAttributes.addFlashAttribute("successMessage", "Спасибо! Ваш отзыв сохранён.");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/catalog/medication/" + id;
     }
 
     // ==== Просмотр каталога по справочникам ====

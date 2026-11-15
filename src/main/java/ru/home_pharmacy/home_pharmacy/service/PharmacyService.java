@@ -205,6 +205,11 @@ public class PharmacyService {
         pharmacyRepository.deleteAll(expired);
     }
 
+    @Transactional(readOnly = true)
+    public long countExpired() {
+        return pharmacyRepository.findAllExpired(LocalDate.now()).size();
+    }
+
     private ArchiveDto toArchiveResponse(Archive archive) {
         return ArchiveDto.builder()
                 .id(archive.getId())

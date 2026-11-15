@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <a th:href="@{/catalog}" class="btn btn-cancel px-3 mb-4">← В каталог</a>
+
+    <h3 class="fw-bold mb-4">Моё избранное</h3>
+
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+
+    <div th:if="${favorites.isEmpty()}" class="alert alert-secondary">
+        У вас пока нет избранных товаров. Добавляйте лекарства в избранное, чтобы отслеживать их появление в наличии.
+        <a th:href="@{/catalog}">Перейти в каталог</a>.
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4" th:unless="${favorites.isEmpty()}">
+        <div class="col" th:each="fav : ${favorites}">
+            <div class="card h-100 shadow-sm">
+                <div class="position-relative">
+                    <img th:src="${fav.image != null ? fav.image : '/no-photo.jpg'}"
+                         th:classappend="${!fav.inStock} ? 'out-of-stock'"
+                         class="card-img-fixed" alt="Фото лекарства">
+                    <span th:if="${!fav.inStock}" class="out-of-stock-overlay">Нет в наличии</span>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h6 class="fw-bold" th:text="${fav.name}"></h6>
+                    <p class="fw-semibold mb-2"
+                       th:text="'Цена: ' + ${#numbers.formatDecimal(fav.price, 1, 2)} + ' ₽'"></p>
+
+                    <div th:if="${fav.inStock}">
+                        <span class="badge bg-success mb-2">В наличии: [[${fav.availableQuantity}]] шт</span>
+                    </div>
+                    <div th:unless="${fav.inStock}">
+                        <span class="badge bg-secondary mb-1">Нет в наличии</span>
+                        <p class="small text-muted mb-2">Уведомим, когда появится в наличии</p>
+                    </div>
+
+                    <div class="mt-auto d-flex gap-2 flex-wrap">
+                        <a th:href="@{/catalog/medication/{id}(id=${fav.medicationId})}"
+                           class="btn btn-edit px-3">Подробнее</a>
+                        <form th:if="${fav.inStock}"
+                              th:action="@{/cart/add/{id}(id=${fav.medicationId})}" method="post" class="mb-0">
+                            <button type="submit" class="btn btn-save px-3">В корзину</button>
+                        </form>
+                        <form th:action="@{/favorites/{id}/delete(id=${fav.id})}" method="post" class="mb-0">
+                            <button type="submit" class="btn btn-delete px-3">
+                                <i class="bi bi-heart-fill"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

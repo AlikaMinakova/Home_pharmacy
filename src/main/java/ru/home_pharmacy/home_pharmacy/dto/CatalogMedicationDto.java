@@ -20,6 +20,8 @@ public class CatalogMedicationDto {
     private BigDecimal price;
     private Long availableQuantity;
     private Boolean prescriptionRequired = false;
+    private Double rating;
+    private Long reviewCount;
 
     public boolean isInStock() {
         return availableQuantity != null && availableQuantity > 0;

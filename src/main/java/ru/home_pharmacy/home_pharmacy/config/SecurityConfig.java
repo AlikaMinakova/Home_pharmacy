@@ -25,7 +25,7 @@ public class SecurityConfig {
         return (request, response, authentication) -> {
             boolean customer = authentication.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"));
-            response.sendRedirect(customer ? "/catalog" : "/pharmacies");
+            response.sendRedirect(customer ? "/catalog" : "/dashboard");
         };
     }
 
@@ -46,7 +46,7 @@ public class SecurityConfig {
                         // чат по заявке доступен покупателю и аптекарю
                         .requestMatchers("/chat/**").authenticated()
                         // всё, что относится к управлению, доступно только сотруднику
-                        .requestMatchers("/medication/**", "/diseases/**", "/ingredients/**",
+                        .requestMatchers("/dashboard", "/medication/**", "/diseases/**", "/ingredients/**",
                                 "/symptoms/**", "/pharmacies/**", "/orders/**", "/requests/**").hasRole(EMPLOYEE)
                         .anyRequest().authenticated()
                 )

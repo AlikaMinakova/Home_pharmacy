@@ -11,12 +11,41 @@
 
     <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
 
+    <!-- Поиск и фильтры -->
     <form th:action="@{/catalog}" method="get" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="name" th:value="${#strings.defaultString(currentName, '')}"
-                   class="form-control" placeholder="Поиск по названию...">
-            <button type="submit" class="btn btn-outline-primary">Найти</button>
-            <a th:href="@{/catalog}" class="btn btn-outline-primary">Сброс</a>
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <input type="text" name="name" th:value="${#strings.defaultString(currentName, '')}"
+                       class="form-control" placeholder="Поиск по названию...">
+            </div>
+            <div class="col-md-3">
+                <select name="inStock" class="form-select">
+                    <option value="">Наличие: любые</option>
+                    <option value="true" th:selected="${inStock == true}">Только в наличии</option>
+                    <option value="false" th:selected="${inStock == false}">Нет в наличии</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="prescriptionRequired" class="form-select">
+                    <option value="">Рецепт: любые</option>
+                    <option value="false" th:selected="${prescriptionRequired == false}">Без рецепта</option>
+                    <option value="true" th:selected="${prescriptionRequired == true}">По рецепту</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="input-group">
+                    <input type="number" name="minPrice" step="0.01" th:value="${minPrice}"
+                           class="form-control" placeholder="Цена от">
+                    <input type="number" name="maxPrice" step="0.01" th:value="${maxPrice}"
+                           class="form-control" placeholder="до">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary">Найти</button>
+                    <a th:href="@{/catalog}" class="btn btn-outline-primary">Сброс</a>
+                </div>
+            </div>
         </div>
     </form>
 
@@ -35,6 +64,15 @@
                         <span th:if="${med.prescriptionRequired}" class="badge bg-danger">По рецепту</span>
                     </div>
                     <p class="small text-muted mt-1" th:text="${med.description}"></p>
+
+                    <!-- Рейтинг -->
+                    <p class="mb-1">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <span th:text="${med.rating != null ? #numbers.formatDecimal(med.rating, 1, 1) : '—'}"></span>
+                        <span class="text-muted"
+                              th:text="'(' + ${med.reviewCount != null ? med.reviewCount : 0} + ' отзывов)'"></span>
+                    </p>
+
                     <p class="fw-semibold mb-2" th:text="'Цена: ' + ${#numbers.formatDecimal(med.price, 1, 2)} + ' ₽'"></p>
 
                     <div th:if="${med.inStock}">
@@ -66,16 +104,22 @@
         <ul class="pagination justify-content-center mt-4">
             <li th:classappend="${medicationsPage.first} ? 'disabled'">
                 <a class="page-link"
-                   th:href="@{/catalog(page=${medicationsPage.number - 1}, size=${medicationsPage.size}, name=${currentName})}">‹</a>
+                   th:href="@{/catalog(page=${medicationsPage.number - 1}, size=${medicationsPage.size},
+                       name=${currentName}, inStock=${inStock}, prescriptionRequired=${prescriptionRequired},
+                       minPrice=${minPrice}, maxPrice=${maxPrice})}">‹</a>
             </li>
             <li th:each="i : ${#numbers.sequence(0, medicationsPage.totalPages - 1)}"
                 th:classappend="${i == medicationsPage.number} ? 'active'">
                 <a class="page-link" th:text="${i + 1}"
-                   th:href="@{/catalog(page=${i}, size=${medicationsPage.size}, name=${currentName})}"></a>
+                   th:href="@{/catalog(page=${i}, size=${medicationsPage.size},
+                       name=${currentName}, inStock=${inStock}, prescriptionRequired=${prescriptionRequired},
+                       minPrice=${minPrice}, maxPrice=${maxPrice})}"></a>
             </li>
             <li th:classappend="${medicationsPage.last} ? 'disabled'">
                 <a class="page-link"
-                   th:href="@{/catalog(page=${medicationsPage.number + 1}, size=${medicationsPage.size}, name=${currentName})}">›</a>
+                   th:href="@{/catalog(page=${medicationsPage.number + 1}, size=${medicationsPage.size},
+                       name=${currentName}, inStock=${inStock}, prescriptionRequired=${prescriptionRequired},
+                       minPrice=${minPrice}, maxPrice=${maxPrice})}">›</a>
             </li>
         </ul>
     </nav>

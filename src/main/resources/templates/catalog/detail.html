@@ -12,6 +12,7 @@
     </a>
 
     <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
     <div class="row g-4">
 
@@ -41,6 +42,12 @@
                     </div>
                     <p class="fs-5 fw-bold text-primary mb-0"
                        th:text="'Цена: ' + ${#numbers.formatDecimal(medication.price, 1, 2)} + ' ₽'"></p>
+                    <p class="mb-0 mt-1">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <span th:text="${averageRating != null ? #numbers.formatDecimal(averageRating, 1, 1) : '—'}"></span>
+                        <span class="text-muted"
+                              th:text="'(' + ${reviewCount != null ? reviewCount : 0} + ' отзывов)'"></span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -134,6 +141,68 @@
                 <div class="card-body">
                     <canvas id="priceChart" width="600" height="200"
                             style="width:600px; height:200px; max-width:100%;"></canvas>
+                </div>
+            </div>
+
+            <!-- Отзывы -->
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-warning text-dark fw-semibold py-2">
+                    <i class="bi bi-chat-left-heart-fill"></i> Отзывы покупателей
+                </div>
+                <div class="card-body">
+                    <div th:if="${reviews != null and !reviews.isEmpty()}">
+                        <div class="border-bottom pb-2 mb-3" th:each="r : ${reviews}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold" th:text="${r.user.name}"></span>
+                                <span>
+                                    <span th:each="star : ${#numbers.sequence(1, 5)}"
+                                          th:classappend="${star <= r.rating} ? 'text-warning' : 'text-secondary'">
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                    <span class="small text-muted"
+                                          th:text="' · ' + ${#temporals.format(r.createdAt, 'dd.MM.yyyy')}"></span>
+                                </span>
+                            </div>
+                            <p class="mb-0 mt-1" th:text="${r.comment}"></p>
+                        </div>
+                    </div>
+                    <p th:unless="${reviews != null and !reviews.isEmpty()}" class="text-muted mb-0">
+                        Отзывов пока нет.
+                    </p>
+
+                    <!-- Форма отзыва (только покупатель, который выкупил лекарство) -->
+                    <form sec:authorize="hasRole('CUSTOMER')" th:if="${canReview}"
+                          th:action="@{/catalog/medication/{id}/review(id=${medication.id})}"
+                          method="post" class="mt-3 border-top pt-3">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-auto">
+                                <label class="form-label mb-0 fw-semibold">Оценка:</label>
+                            </div>
+                            <div class="col-auto">
+                                <select name="rating" class="form-select" style="width:90px;">
+                                    <option value="5" selected>5</option>
+                                    <option value="4">4</option>
+                                    <option value="3">3</option>
+                                    <option value="2">2</option>
+                                    <option value="1">1</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <input type="text" name="comment" class="form-control"
+                                       placeholder="Ваш комментарий (необязательно)">
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-save">
+                                    <i class="bi bi-send"></i>
+                                    <span th:text="${userReviewed} ? 'Обновить отзыв' : 'Оставить отзыв'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <p sec:authorize="hasRole('CUSTOMER')" th:unless="${canReview}"
+                       class="small text-muted mt-3 border-top pt-2 mb-0">
+                        <i class="bi bi-lock"></i> Оставить отзыв можно только после покупки этого лекарства.
+                    </p>
                 </div>
             </div>
         </div>

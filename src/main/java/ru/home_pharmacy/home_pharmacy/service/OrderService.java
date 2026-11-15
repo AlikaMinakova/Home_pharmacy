@@ -133,6 +133,11 @@ public class OrderService {
         return orderRepository.countByStatus(OrderStatus.NEW);
     }
 
+    @Transactional(readOnly = true)
+    public long countAll() {
+        return orderRepository.count();
+    }
+
     public void confirm(Long id) {
         CustomerOrder order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Заказ не найден: " + id));
@@ -154,6 +159,7 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.CONFIRMED);
+        order.setBuyerNotified(false);
         orderRepository.save(order);
     }
 
@@ -161,6 +167,7 @@ public class OrderService {
         CustomerOrder order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Заказ не найден: " + id));
         order.setStatus(OrderStatus.REJECTED);
+        order.setBuyerNotified(false);
         orderRepository.save(order);
     }
 
@@ -169,6 +176,7 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Заказ не найден: " + id));
         if (order.getStatus() == OrderStatus.CONFIRMED) {
             order.setStatus(OrderStatus.PURCHASED);
+            order.setBuyerNotified(false);
             orderRepository.save(order);
         }
     }
@@ -202,6 +210,38 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.REJECTED);
+        orderRepository.save(order);
+    }
+
+    @Transactional(readOnly = true)
+    public long countUnreadByPhone(String customerPhone) {
+        return orderRepository.countByCustomerPhoneAndBuyerNotifiedFalse(customerPhone);
+    }
+
+    /** Выкупал ли покупатель это лекарство (статус PURCHASED) — для отзыва. */
+    @Transactional(readOnly = true)
+    public boolean hasPurchased(String customerPhone, Long medicationId) {
+        return orderRepository.existsByCustomerPhoneAndMedicationIdAndStatus(
+                customerPhone, medicationId, OrderStatus.PURCHASED);
+    }
+
+    /** Снимает флаг уведомления, когда покупатель открыл «Мои заказы». */
+    public void markOrdersRead(String customerPhone) {
+        orderRepository.markAllNotified(customerPhone);
+    }
+
+    /** Покупатель отменяет свой новый (ещё не обработанный) заказ. */
+    public void cancelByBuyer(Long id, String customerPhone) {
+        CustomerOrder order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Заказ не найден: " + id));
+        if (!order.getCustomerPhone().equals(PhoneUtils.normalize(customerPhone))) {
+            throw new RuntimeException("Это не ваш заказ.");
+        }
+        if (order.getStatus() != OrderStatus.NEW) {
+            throw new RuntimeException("Отменить можно только новый (необработанный) заказ.");
+        }
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setBuyerNotified(false);
         orderRepository.save(order);
     }
 

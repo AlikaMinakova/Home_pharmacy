@@ -21,8 +21,23 @@ public class CustomerHistoryController {
 
     @GetMapping("/my-orders")
     public String myOrders(@AuthenticationPrincipal UserDetails principal, Model model) {
-        model.addAttribute("orders", orderService.getOrdersGroupedByPhone(principal.getUsername()));
+        String phone = principal.getUsername();
+        model.addAttribute("orders", orderService.getOrdersGroupedByPhone(phone));
+        orderService.markOrdersRead(phone);
         return "my/orders";
+    }
+
+    @PostMapping("/my-orders/{id}/cancel")
+    public String cancelOrder(@PathVariable Long id,
+                              @AuthenticationPrincipal UserDetails principal,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            orderService.cancelByBuyer(id, principal.getUsername());
+            redirectAttributes.addFlashAttribute("successMessage", "Заказ отменён.");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/my-orders";
     }
 
     @GetMapping("/my-requests")

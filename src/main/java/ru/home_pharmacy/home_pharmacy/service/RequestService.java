@@ -90,6 +90,11 @@ public class RequestService {
         return requestRepository.countByStatus(RequestStatus.NEW);
     }
 
+    @Transactional(readOnly = true)
+    public long countAll() {
+        return requestRepository.count();
+    }
+
     public void approve(Long id) {
         changeStatus(id, RequestStatus.APPROVED);
     }

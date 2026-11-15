@@ -2,6 +2,7 @@ package ru.home_pharmacy.home_pharmacy.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,6 +14,7 @@ import ru.home_pharmacy.home_pharmacy.entity.Medication;
 import ru.home_pharmacy.home_pharmacy.repository.MedicationRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PharmacyRepository;
 import ru.home_pharmacy.home_pharmacy.repository.PriceHistoryRepository;
+import ru.home_pharmacy.home_pharmacy.repository.ReviewRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,6 +29,7 @@ public class CatalogService {
     private final MedicationRepository medicationRepository;
     private final PharmacyRepository pharmacyRepository;
     private final PriceHistoryRepository priceHistoryRepository;
+    private final ReviewRepository reviewRepository;
 
     public Page<CatalogMedicationDto> findAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
@@ -36,6 +39,29 @@ public class CatalogService {
     public Page<CatalogMedicationDto> searchByName(String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
         return medicationRepository.findByNameContaining(name, pageable).map(this::toResponse);
+    }
+
+    /**
+     * Каталог с фильтрами: по названию, наличию, рецептурности и диапазону цены.
+     * Фильтрация выполняется в памяти (объём данных небольшой), затем применяется пагинация.
+     */
+    public Page<CatalogMedicationDto> filter(String name, Boolean inStock, Boolean prescriptionRequired,
+                                             BigDecimal minPrice, BigDecimal maxPrice, int page, int size) {
+        List<CatalogMedicationDto> all = medicationRepository.findAll(Sort.by("name").ascending())
+                .stream()
+                .map(this::toResponse)
+                .filter(m -> name == null || name.isBlank()
+                        || m.getName().toLowerCase().contains(name.toLowerCase()))
+                .filter(m -> prescriptionRequired == null
+                        || Boolean.TRUE.equals(m.getPrescriptionRequired()) == prescriptionRequired)
+                .filter(m -> minPrice == null || m.getPrice().compareTo(minPrice) >= 0)
+                .filter(m -> maxPrice == null || m.getPrice().compareTo(maxPrice) <= 0)
+                .filter(m -> inStock == null || m.isInStock() == inStock)
+                .toList();
+        int total = all.size();
+        int from = Math.min(page * size, total);
+        int to = Math.min(from + size, total);
+        return new PageImpl<>(all.subList(from, to), PageRequest.of(page, size), total);
     }
 
     public Page<CatalogMedicationDto> findByDisease(Long diseaseId, int page, int size) {
@@ -97,6 +123,8 @@ public class CatalogService {
                 .price(medication.getPrice() != null ? medication.getPrice() : BigDecimal.ZERO)
                 .availableQuantity(pharmacyRepository.sumAvailableQuantity(medication.getId(), LocalDate.now()))
                 .prescriptionRequired(Boolean.TRUE.equals(medication.getPrescriptionRequired()))
+                .rating(reviewRepository.findAverageRating(medication.getId()))
+                .reviewCount(reviewRepository.countByMedicationId(medication.getId()))
                 .build();
     }
 }

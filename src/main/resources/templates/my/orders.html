@@ -11,6 +11,7 @@
     <h3 class="fw-bold mb-4">Мои заказы</h3>
 
     <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
     <div th:if="${#maps.isEmpty(orders)}" class="alert alert-secondary">
         У вас пока нет заказов. <a th:href="@{/catalog}">Перейти в каталог</a>.
@@ -33,6 +34,7 @@
                             <th>Кол-во</th>
                             <th>Цена</th>
                             <th>Статус</th>
+                            <th></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -45,6 +47,13 @@
                                 <span class="badge bg-success" th:if="${order.status.name() == 'CONFIRMED'}">Подтверждён</span>
                                 <span class="badge bg-info text-dark" th:if="${order.status.name() == 'PURCHASED'}">Выкуплен</span>
                                 <span class="badge bg-secondary" th:if="${order.status.name() == 'REJECTED'}">Отклонён</span>
+                                <span class="badge bg-dark" th:if="${order.status.name() == 'CANCELLED'}">Отменён</span>
+                            </td>
+                            <td>
+                                <form th:if="${order.status.name() == 'NEW'}"
+                                      th:action="@{/my-orders/{id}/cancel(id=${order.id})}" method="post" class="mb-0">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Отменить</button>
+                                </form>
                             </td>
                         </tr>
                         </tbody>

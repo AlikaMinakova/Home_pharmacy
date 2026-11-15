@@ -39,6 +39,14 @@ public class CustomerOrder {
     @Column(name = "order_group", length = 40)
     private String orderGroup;
 
+    /**
+     * Флаг уведомления покупателя: становится false, когда сотрудник меняет статус
+     * (подтвердил/отклонил/выкупил), и покупатель видит счётчик в «Моих заказах».
+     */
+    @Builder.Default
+    @Column(name = "buyer_notified")
+    private Boolean buyerNotified = true;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 }

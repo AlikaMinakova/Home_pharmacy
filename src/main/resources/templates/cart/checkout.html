@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<div th:replace="fragments/header :: body"></div>
+
+<div class="container my-5 content">
+    <a th:href="@{/cart}" class="btn btn-cancel px-3 mb-4">← Назад в корзину</a>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-3">Оформление заказа</h3>
+
+                    <!-- Сводка по корзине -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Товар</th>
+                                <th class="text-center">Кол-во</th>
+                                <th class="text-end">Цена</th>
+                                <th class="text-end">Стоимость</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${items}">
+                                <td th:text="${item.name}"></td>
+                                <td class="text-center" th:text="${item.quantity}"></td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(item.price, 1, 2)}"></td>
+                                <td class="text-end fw-semibold"
+                                    th:text="${#numbers.formatDecimal(item.lineTotal, 1, 2)}"></td>
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Итого:</td>
+                                <td class="text-end fw-bold"
+                                    th:text="${#numbers.formatDecimal(cartTotal, 1, 2)}"></td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <form th:action="@{/cart/checkout}" th:object="${checkout}" method="post">
+                        <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}"
+                             th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Ваше имя <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{customerName}"
+                                   th:attr="readonly=${isCustomer ? 'readonly' : null}">
+                            <div class="text-danger" th:if="${#fields.hasErrors('customerName')}" th:errors="*{customerName}"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Телефон <span class="text-danger">*</span></label>
+                            <input type="text" inputmode="tel" class="form-control" th:field="*{customerPhone}"
+                                   placeholder="Номер телефона, например 8 900 123-45-67"
+                                   th:attr="readonly=${isCustomer ? 'readonly' : null}">
+                            <div class="text-danger" th:if="${#fields.hasErrors('customerPhone')}" th:errors="*{customerPhone}"></div>
+                            <p class="small text-muted mt-1" th:if="${isCustomer}">Номер привязан к вашему аккаунту и не может быть изменён.</p>
+                        </div>
+
+                        <button type="submit" class="btn btn-save w-100">Подтвердить заказ</button>
+                    </form>
+
+                    <p class="small text-muted mt-3 mb-0">
+                        Оплата при получении в аптечном пункте.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

@@ -146,6 +146,11 @@ public class MedicationService {
         medicationRepository.delete(medication);
     }
 
+    @Transactional(readOnly = true)
+    public long count() {
+        return medicationRepository.count();
+    }
+
     private void fillMedicationFromRequest(MedicationDto request, Medication medication) {
         medication.setName(request.getName());
         medication.setDescription(request.getDescription());
